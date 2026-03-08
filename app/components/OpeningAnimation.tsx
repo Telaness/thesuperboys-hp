@@ -118,7 +118,7 @@ export default function OpeningAnimation({ onComplete }: { onComplete: () => voi
               alt="THE超BOYS"
               width={280}
               height={70}
-              className="h-12 sm:h-16 w-auto drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+              className="h-12 sm:h-16 w-auto"
               priority
             />
           </div>

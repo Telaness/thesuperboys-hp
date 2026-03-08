@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 
-type Tab = "live_events" | "news" | "media";
+type Tab = "live_events" | "news" | "media" | "discography";
 
 interface LiveEvent {
   id: string;
@@ -33,7 +33,15 @@ interface MediaItem {
   image_url: string;
 }
 
-type ContentItem = LiveEvent | NewsItem | MediaItem;
+interface DiscographyItem {
+  id: string;
+  title: string;
+  image_url: string;
+  link_url: string;
+  published: boolean;
+}
+
+type ContentItem = LiveEvent | NewsItem | MediaItem | DiscographyItem;
 
 const tabConfig = {
   live_events: {
@@ -71,6 +79,17 @@ const tabConfig = {
       </svg>
     ),
     color: "#ff6600",
+    imageRequired: true,
+  },
+  discography: {
+    label: "DISCOGRAPHY",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+    color: "#999999",
     imageRequired: true,
   },
 };
@@ -119,10 +138,13 @@ export default function AdminPage() {
   };
 
   const fetchItems = useCallback(async () => {
-    const { data } = await supabase
-      .from(tab)
-      .select("*")
-      .order("date", { ascending: false });
+    const query = supabase.from(tab).select("*");
+    if (tab === "discography") {
+      query.order("created_at", { ascending: false });
+    } else {
+      query.order("date", { ascending: false });
+    }
+    const { data } = await query;
     setItems(data || []);
   }, [tab]);
 
@@ -131,8 +153,12 @@ export default function AdminPage() {
   }, [loggedIn, fetchItems]);
 
   const handleNew = () => {
-    const today = new Date().toISOString().split("T")[0];
-    setEditing({ id: "", title: "", date: today, detail: "", published: true, image_url: "" });
+    if (tab === "discography") {
+      setEditing({ id: "", title: "", image_url: "", link_url: "", published: true } as DiscographyItem);
+    } else {
+      const today = new Date().toISOString().split("T")[0];
+      setEditing({ id: "", title: "", date: today, detail: "", published: true, image_url: "" });
+    }
     setIsNew(true);
     setImageFile(null);
     setImagePreview(null);
@@ -165,9 +191,9 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (!editing) return;
 
-    // MEDIA requires image
-    if (tab === "media" && !editing.image_url && !imageFile) {
-      alert("MEDIAには画像が必須です。");
+    // MEDIA and DISCOGRAPHY require image
+    if ((tab === "media" || tab === "discography") && !editing.image_url && !imageFile) {
+      alert("画像は必須です。");
       return;
     }
 
@@ -495,10 +521,10 @@ export default function AdminPage() {
             ) : (
               <div>
                 {/* Table header */}
-                <div className="grid grid-cols-[100px_60px_120px_1fr_140px] gap-4 px-6 py-3.5 border-b border-gray-100 bg-gray-50/50">
+                <div className={`grid gap-4 px-6 py-3.5 border-b border-gray-100 bg-gray-50/50 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"}`}>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">ステータス</span>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">画像</span>
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">日付</span>
+                  {tab !== "discography" && <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">日付</span>}
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">タイトル</span>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">操作</span>
                 </div>
@@ -506,7 +532,7 @@ export default function AdminPage() {
                 {items.map((item, index) => (
                   <div
                     key={item.id}
-                    className={`grid grid-cols-[100px_60px_120px_1fr_140px] gap-4 px-6 py-3 items-center transition-colors hover:bg-gray-50/80 ${
+                    className={`grid gap-4 px-6 py-3 items-center transition-colors hover:bg-gray-50/80 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"} ${
                       index !== items.length - 1 ? "border-b border-gray-50" : ""
                     }`}
                   >
@@ -547,9 +573,11 @@ export default function AdminPage() {
                       )}
                     </div>
                     {/* Date */}
-                    <div className="text-sm text-gray-400 tabular-nums whitespace-nowrap">
-                      {item.date}
-                    </div>
+                    {tab !== "discography" && (
+                      <div className="text-sm text-gray-400 tabular-nums whitespace-nowrap">
+                        {"date" in item ? (item as LiveEvent).date : ""}
+                      </div>
+                    )}
                     {/* Title */}
                     <div className="text-sm font-medium text-gray-900 truncate">
                       {item.title}
@@ -713,28 +741,48 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">日付</label>
-                <input
-                  type="date"
-                  value={editing.date}
-                  onChange={(e) => updateField("date", e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
-                  style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                />
-              </div>
+              {tab !== "discography" && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">日付</label>
+                  <input
+                    type="date"
+                    value={"date" in editing ? (editing as LiveEvent).date : ""}
+                    onChange={(e) => updateField("date", e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
+                    style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
+                  />
+                </div>
+              )}
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">詳細</label>
-                <textarea
-                  value={editing.detail || ""}
-                  onChange={(e) => updateField("detail", e.target.value)}
-                  rows={6}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all resize-vertical"
-                  style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                  placeholder="詳細情報を入力..."
-                />
-              </div>
+              {tab === "discography" && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                    Apple Music リンク <span className="text-red-500">*必須</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={"link_url" in editing ? (editing as DiscographyItem).link_url : ""}
+                    onChange={(e) => updateField("link_url", e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
+                    style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
+                    placeholder="https://music.apple.com/..."
+                  />
+                </div>
+              )}
+
+              {tab !== "discography" && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">詳細</label>
+                  <textarea
+                    value={"detail" in editing ? (editing as LiveEvent).detail || "" : ""}
+                    onChange={(e) => updateField("detail", e.target.value)}
+                    rows={6}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all resize-vertical"
+                    style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
+                    placeholder="詳細情報を入力..."
+                  />
+                </div>
+              )}
 
               <div className="flex items-center gap-3 pt-1">
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -760,7 +808,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || !editing.title || !editing.date}
+                disabled={saving || !editing.title || (tab !== "discography" && !("date" in editing && (editing as LiveEvent).date)) || (tab === "discography" && !("link_url" in editing && (editing as DiscographyItem).link_url))}
                 className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 hover:opacity-90 active:scale-[0.97] shadow-lg"
                 style={{ backgroundColor: config.color }}
               >
