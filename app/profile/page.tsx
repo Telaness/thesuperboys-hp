@@ -197,21 +197,21 @@ export default function ProfilePage() {
 
           {/* Modal content */}
           <div
-            className="relative w-full max-w-[900px] max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
+            className="relative w-full max-w-[900px] max-h-[85vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
             style={{ animation: "modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={() => setSelectedMember(null)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors text-xl"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors text-lg sm:text-xl"
             >
               &times;
             </button>
 
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row max-h-[85vh] overflow-y-auto">
               {/* Photo side */}
-              <div className="relative w-full md:w-1/2 aspect-[3/4] bg-black flex-shrink-0">
+              <div className="relative w-full md:w-1/2 aspect-[4/3] sm:aspect-[3/4] bg-black flex-shrink-0">
                 <Image
                   src={selectedMember.image}
                   alt={selectedMember.name}
@@ -226,7 +226,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Info side */}
-              <div className="flex-1 p-8 md:p-10 flex flex-col justify-center relative overflow-hidden overflow-y-auto max-h-[90vh] md:max-h-none">
+              <div className="flex-1 p-5 sm:p-8 md:p-10 flex flex-col justify-center relative overflow-hidden">
                 {/* Background accent */}
                 <div
                   className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 blur-3xl"
@@ -234,14 +234,14 @@ export default function ProfilePage() {
                 />
 
                 {/* Name */}
-                <div className="mb-6">
+                <div className="mb-3 sm:mb-6">
                   <h3
-                    className="font-impact text-4xl md:text-5xl tracking-wider"
+                    className="font-impact text-3xl sm:text-4xl md:text-5xl tracking-wider"
                     style={{ color: selectedMember.color }}
                   >
                     {selectedMember.name}
                   </h3>
-                  <p className="text-lg font-bold mt-1">{selectedMember.realName}</p>
+                  <p className="text-base sm:text-lg font-bold mt-1">{selectedMember.realName}</p>
                   <div
                     className="mt-2 h-[2px] w-20"
                     style={{ backgroundColor: selectedMember.color }}
@@ -249,10 +249,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Catchphrase */}
-                <div className="mb-4">
-                  <p className="text-sm font-bold leading-relaxed">{selectedMember.catchphrase}</p>
+                <div className="mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-bold leading-relaxed">{selectedMember.catchphrase}</p>
                   <p
-                    className="text-base font-black mt-1 tracking-wide"
+                    className="text-sm sm:text-base font-black mt-1 tracking-wide"
                     style={{ color: selectedMember.color }}
                   >
                     {selectedMember.superCall}
@@ -260,13 +260,13 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Birthday */}
-                <div className="mb-6">
+                <div className="mb-3 sm:mb-6">
                   <p className="text-xs text-gray-400 tracking-widest mb-1">BIRTH</p>
-                  <p className="text-base font-medium">{selectedMember.birthday}</p>
+                  <p className="text-sm sm:text-base font-medium">{selectedMember.birthday}</p>
                 </div>
 
                 {/* SNS */}
-                <div className="mt-auto pt-4">
+                <div className="pt-2 sm:pt-4">
                   <p className="text-xs text-gray-400 tracking-widest mb-3">SNS</p>
                   <div className="flex gap-3">
                     <a
