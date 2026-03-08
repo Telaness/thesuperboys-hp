@@ -106,7 +106,7 @@ export default function AdminPage() {
   const [editing, setEditing] = useState<ContentItem | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -119,6 +119,11 @@ export default function AdminPage() {
       if (data.session) setLoggedIn(true);
       setChecking(false);
     });
+  }, []);
+
+  // On desktop, default sidebar open
+  useEffect(() => {
+    if (window.innerWidth >= 1024) setSidebarOpen(true);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -191,7 +196,6 @@ export default function AdminPage() {
   const handleSave = async () => {
     if (!editing) return;
 
-    // MEDIA and DISCOGRAPHY require image
     if ((tab === "media" || tab === "discography") && !editing.image_url && !imageFile) {
       alert("画像は必須です。");
       return;
@@ -202,7 +206,6 @@ export default function AdminPage() {
     try {
       let imageUrl = editing.image_url || "";
 
-      // Upload image if a new file is selected
       if (imageFile) {
         setUploading(true);
         imageUrl = await uploadImage(imageFile);
@@ -250,13 +253,11 @@ export default function AdminPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       alert("画像ファイルを選択してください。");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("画像サイズは5MB以下にしてください。");
       return;
@@ -317,7 +318,7 @@ export default function AdminPage() {
             <p className="text-sm text-white/40 mt-1 tracking-wider">THE超BOYS 管理画面</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-2 tracking-wider uppercase">メールアドレス</label>
@@ -368,148 +369,144 @@ export default function AdminPage() {
   const config = tabConfig[tab];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-gray-900 text-white z-40 transition-all duration-300 flex flex-col ${
-          sidebarOpen ? "w-64" : "w-20"
+        className={`fixed top-0 left-0 h-full bg-gray-900 text-white z-40 transition-transform duration-300 flex flex-col w-64 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-20"
         }`}
       >
-        <div className="p-5 border-b border-white/10">
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
               <span className="text-lg font-bold">S</span>
             </div>
+            <div className="overflow-hidden lg:hidden" style={sidebarOpen ? {} : { display: "none" }}>
+              <p className="text-sm font-bold tracking-wider whitespace-nowrap">THE超BOYS</p>
+              <p className="text-[10px] text-white/40 tracking-wider whitespace-nowrap">ADMIN PANEL</p>
+            </div>
             {sidebarOpen && (
-              <div className="overflow-hidden">
+              <div className="overflow-hidden hidden lg:block">
                 <p className="text-sm font-bold tracking-wider whitespace-nowrap">THE超BOYS</p>
                 <p className="text-[10px] text-white/40 tracking-wider whitespace-nowrap">ADMIN PANEL</p>
               </div>
             )}
           </div>
+          {/* Close button for mobile */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden w-8 h-8 flex items-center justify-center text-white/50 hover:text-white"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          <p className={`text-[10px] font-bold text-white/30 tracking-widest uppercase px-3 py-2 ${!sidebarOpen && "text-center"}`}>
-            {sidebarOpen ? "コンテンツ管理" : "•••"}
+          <p className="text-[10px] font-bold text-white/30 tracking-widest uppercase px-3 py-2">
+            コンテンツ管理
           </p>
           {(Object.entries(tabConfig) as [Tab, typeof config][]).map(([key, cfg]) => (
             <button
               key={key}
-              onClick={() => { setTab(key); setEditing(null); setImageFile(null); setImagePreview(null); }}
+              onClick={() => { setTab(key); setEditing(null); setImageFile(null); setImagePreview(null); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
                 tab === key
                   ? "bg-white/15 text-white"
                   : "text-white/50 hover:text-white/80 hover:bg-white/5"
-              } ${!sidebarOpen && "justify-center"}`}
+              }`}
             >
               <span className="flex-shrink-0" style={tab === key ? { color: cfg.color } : undefined}>
                 {cfg.icon}
               </span>
-              {sidebarOpen && <span className="whitespace-nowrap">{cfg.label}</span>}
+              <span className="whitespace-nowrap">{cfg.label}</span>
             </button>
           ))}
         </nav>
 
         <div className="p-3 border-t border-white/10 space-y-1">
           <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-white/50 hover:text-white/80 hover:bg-white/5 transition-all ${!sidebarOpen && "justify-center"}`}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`flex-shrink-0 transition-transform ${!sidebarOpen && "rotate-180"}`}>
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <line x1="9" y1="3" x2="9" y2="21" />
-            </svg>
-            {sidebarOpen && <span className="whitespace-nowrap">サイドバー</span>}
-          </button>
-          <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all ${!sidebarOpen && "justify-center"}`}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            {sidebarOpen && <span className="whitespace-nowrap">ログアウト</span>}
+            <span className="whitespace-nowrap">ログアウト</span>
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
+      <main className="lg:ml-20 transition-all duration-300">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/50">
-          <div className="px-8 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200/50">
+          <div className="px-4 sm:px-8 h-14 sm:h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: config.color + "15", color: config.color }}>
                 {config.icon}
               </div>
-              <h1 className="text-base font-bold text-gray-900">{config.label}</h1>
+              <h1 className="text-sm sm:text-base font-bold text-gray-900">{config.label}</h1>
             </div>
             <button
               onClick={handleNew}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.97] shadow-lg"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.97] shadow-lg"
               style={{ backgroundColor: config.color }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              新規作成
+              <span className="hidden sm:inline">新規作成</span>
+              <span className="sm:hidden">追加</span>
             </button>
           </div>
         </header>
 
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
           {/* Stats cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">全件数</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{items.length}</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: config.color + "10", color: config.color }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                </div>
-              </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-5 shadow-sm">
+              <p className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">全件数</p>
+              <p className="text-xl sm:text-3xl font-bold text-gray-900 mt-1">{items.length}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">公開中</p>
-                  <p className="text-3xl font-bold text-green-600 mt-1">{publishedCount}</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-500">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </div>
-              </div>
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-5 shadow-sm">
+              <p className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">公開中</p>
+              <p className="text-xl sm:text-3xl font-bold text-green-600 mt-1">{publishedCount}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">下書き</p>
-                  <p className="text-3xl font-bold text-gray-400 mt-1">{draftCount}</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                  </svg>
-                </div>
-              </div>
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-5 shadow-sm">
+              <p className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">下書き</p>
+              <p className="text-xl sm:text-3xl font-bold text-gray-400 mt-1">{draftCount}</p>
             </div>
           </div>
 
-          {/* Item list */}
+          {/* Item list - table on desktop, cards on mobile */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {items.length === 0 ? (
-              <div className="py-24 flex flex-col items-center justify-center text-gray-400">
+              <div className="py-16 sm:py-24 flex flex-col items-center justify-center text-gray-400">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-40">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                   <line x1="3" y1="9" x2="21" y2="9" />
@@ -519,95 +516,142 @@ export default function AdminPage() {
                 <p className="text-xs text-gray-300 mt-1">「新規作成」ボタンから追加してください</p>
               </div>
             ) : (
-              <div>
-                {/* Table header */}
-                <div className={`grid gap-4 px-6 py-3.5 border-b border-gray-100 bg-gray-50/50 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"}`}>
+              <>
+                {/* Desktop table header */}
+                <div className={`hidden md:grid gap-4 px-6 py-3.5 border-b border-gray-100 bg-gray-50/50 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"}`}>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">ステータス</span>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">画像</span>
                   {tab !== "discography" && <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">日付</span>}
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">タイトル</span>
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">操作</span>
                 </div>
-                {/* Rows */}
+
                 {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={`grid gap-4 px-6 py-3 items-center transition-colors hover:bg-gray-50/80 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"} ${
-                      index !== items.length - 1 ? "border-b border-gray-50" : ""
-                    }`}
-                  >
-                    {/* Status */}
-                    <div>
-                      <button
-                        onClick={() => handleTogglePublish(item)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all active:scale-95 ${
-                          item.published
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                            : "bg-gray-100 text-gray-400 hover:bg-gray-200"
-                        }`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${item.published ? "bg-green-500" : "bg-gray-300"}`} />
-                        {item.published ? "公開" : "非公開"}
-                      </button>
-                    </div>
-                    {/* Thumbnail */}
-                    <div>
-                      {item.image_url ? (
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 relative">
-                          <Image
-                            src={item.image_url}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="40px"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21 15 16 10 5 21" />
-                          </svg>
+                  <div key={item.id}>
+                    {/* Desktop row */}
+                    <div
+                      className={`hidden md:grid gap-4 px-6 py-3 items-center transition-colors hover:bg-gray-50/80 ${tab === "discography" ? "grid-cols-[100px_60px_1fr_140px]" : "grid-cols-[100px_60px_120px_1fr_140px]"} ${
+                        index !== items.length - 1 ? "border-b border-gray-50" : ""
+                      }`}
+                    >
+                      <div>
+                        <button
+                          onClick={() => handleTogglePublish(item)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all active:scale-95 ${
+                            item.published
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${item.published ? "bg-green-500" : "bg-gray-300"}`} />
+                          {item.published ? "公開" : "非公開"}
+                        </button>
+                      </div>
+                      <div>
+                        {item.image_url ? (
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 relative">
+                            <Image src={item.image_url} alt="" fill className="object-cover" sizes="40px" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                              <circle cx="8.5" cy="8.5" r="1.5" />
+                              <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {tab !== "discography" && (
+                        <div className="text-sm text-gray-400 tabular-nums whitespace-nowrap">
+                          {"date" in item ? (item as LiveEvent).date : ""}
                         </div>
                       )}
-                    </div>
-                    {/* Date */}
-                    {tab !== "discography" && (
-                      <div className="text-sm text-gray-400 tabular-nums whitespace-nowrap">
-                        {"date" in item ? (item as LiveEvent).date : ""}
+                      <div className="text-sm font-medium text-gray-900 truncate">{item.title}</div>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          編集
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                          削除
+                        </button>
                       </div>
-                    )}
-                    {/* Title */}
-                    <div className="text-sm font-medium text-gray-900 truncate">
-                      {item.title}
                     </div>
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                        編集
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                        削除
-                      </button>
+
+                    {/* Mobile card */}
+                    <div className={`md:hidden px-4 py-3 ${index !== items.length - 1 ? "border-b border-gray-100" : ""}`}>
+                      <div className="flex items-start gap-3">
+                        {/* Thumbnail */}
+                        <div className="flex-shrink-0">
+                          {item.image_url ? (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 relative">
+                              <Image src={item.image_url} alt="" fill className="object-cover" sizes="48px" />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              item.published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"
+                            }`}>
+                              <span className={`w-1 h-1 rounded-full ${item.published ? "bg-green-500" : "bg-gray-300"}`} />
+                              {item.published ? "公開" : "非公開"}
+                            </span>
+                            {tab !== "discography" && "date" in item && (
+                              <span className="text-[11px] text-gray-400">{(item as LiveEvent).date}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center justify-end gap-1 mt-2">
+                        <button
+                          onClick={() => handleTogglePublish(item)}
+                          className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+                        >
+                          {item.published ? "非公開にする" : "公開する"}
+                        </button>
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-red-400 hover:bg-red-50 transition-colors"
+                        >
+                          削除
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -615,14 +659,14 @@ export default function AdminPage() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => { setEditing(null); setImageFile(null); setImagePreview(null); }}>
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4" onClick={() => { setEditing(null); setImageFile(null); setImagePreview(null); }}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-[560px] max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto"
+            className="relative w-full sm:max-w-[560px] max-h-[90vh] sm:max-h-[90vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
-            <div className="sticky top-0 bg-white/90 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white/90 backdrop-blur-xl border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
@@ -640,7 +684,7 @@ export default function AdminPage() {
                     </svg>
                   )}
                 </div>
-                <h2 className="text-base font-bold text-gray-900">{isNew ? "新規作成" : "編集"}</h2>
+                <h2 className="text-sm sm:text-base font-bold text-gray-900">{isNew ? "新規作成" : "編集"}</h2>
               </div>
               <button
                 onClick={() => { setEditing(null); setImageFile(null); setImagePreview(null); }}
@@ -654,7 +698,7 @@ export default function AdminPage() {
             </div>
 
             {/* Modal body */}
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-5">
               {/* Image upload */}
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
@@ -691,6 +735,23 @@ export default function AdminPage() {
                         </button>
                       </div>
                     </div>
+                    {/* Mobile image actions (no hover on mobile) */}
+                    <div className="flex gap-2 mt-2 sm:hidden">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-600"
+                      >
+                        画像を変更
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="px-3 py-2 bg-red-50 rounded-lg text-xs font-medium text-red-500"
+                      >
+                        削除
+                      </button>
+                    </div>
                     {imageFile && (
                       <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -715,7 +776,7 @@ export default function AdminPage() {
                       </svg>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium text-gray-500">クリックして画像を選択</p>
+                      <p className="text-sm font-medium text-gray-500">タップして画像を選択</p>
                       <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (最大 5MB)</p>
                     </div>
                   </button>
@@ -799,23 +860,23 @@ export default function AdminPage() {
             </div>
 
             {/* Modal footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 sm:px-6 py-3 sm:py-4 flex justify-end gap-3">
               <button
                 onClick={() => { setEditing(null); setImageFile(null); setImagePreview(null); }}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+                className="px-4 sm:px-5 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !editing.title || (tab !== "discography" && !("date" in editing && (editing as LiveEvent).date)) || (tab === "discography" && !("link_url" in editing && (editing as DiscographyItem).link_url))}
-                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 hover:opacity-90 active:scale-[0.97] shadow-lg"
+                className="px-5 sm:px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 hover:opacity-90 active:scale-[0.97] shadow-lg"
                 style={{ backgroundColor: config.color }}
               >
                 {saving ? (
                   <span className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {uploading ? "画像アップロード中..." : "保存中..."}
+                    {uploading ? "アップロード中..." : "保存中..."}
                   </span>
                 ) : "保存する"}
               </button>
