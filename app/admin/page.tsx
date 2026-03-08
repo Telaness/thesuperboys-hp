@@ -550,9 +550,9 @@ export default function AdminPage() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center" onClick={closeModal}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={closeModal}>
           <div className="absolute inset-0 bg-black/50" />
-          <div className="relative w-full sm:max-w-[500px] max-h-[85vh] bg-white rounded-t-xl sm:rounded-xl shadow-2xl overflow-y-auto sm:mx-4"
+          <div className="relative w-full sm:max-w-[500px] max-h-[70vh] sm:max-h-[85vh] bg-white rounded-t-xl sm:rounded-xl shadow-2xl overflow-y-auto mx-3 sm:mx-4 mb-[env(safe-area-inset-bottom)]"
             onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
@@ -572,7 +572,7 @@ export default function AdminPage() {
             </div>
 
             {/* Body */}
-            <div className="p-4 space-y-4">
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
               {/* Image */}
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
@@ -580,7 +580,7 @@ export default function AdminPage() {
                 </label>
                 {imagePreview ? (
                   <div>
-                    <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden bg-gray-100">
+                    <div className="relative w-full aspect-[2/1] sm:aspect-[16/9] rounded-lg overflow-hidden bg-gray-100">
                       <Image src={imagePreview} alt="プレビュー" fill className="object-cover" sizes="500px" unoptimized={imagePreview.startsWith("data:")} />
                     </div>
                     <div className="flex gap-2 mt-2">
@@ -599,7 +599,7 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <button type="button" onClick={() => fileInputRef.current?.click()}
-                    className="w-full aspect-[16/9] rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-300 bg-gray-50 transition-all flex flex-col items-center justify-center gap-2">
+                    className="w-full aspect-[2/1] sm:aspect-[16/9] rounded-lg border-2 border-dashed border-gray-200 hover:border-gray-300 bg-gray-50 transition-all flex flex-col items-center justify-center gap-2">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                     <p className="text-xs text-gray-500">タップして画像を選択</p>
                     <p className="text-[10px] text-gray-400">JPG, PNG, WebP (最大 5MB)</p>
