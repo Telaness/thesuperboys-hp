@@ -24,7 +24,7 @@ export default function ContactPage() {
         <SectionHeading color="#222222">CONTACT</SectionHeading>
         <p className="section-subtitle mb-16">お問い合わせ</p>
 
-        <form onSubmit={handleSubmit} className="max-w-[800px] space-y-10">
+        <form onSubmit={handleSubmit} className="max-w-[600px] mx-auto space-y-10">
           {/* Name */}
           <div>
             <p className="text-sm font-bold mb-4">名前</p>
@@ -96,7 +96,7 @@ export default function ContactPage() {
         </form>
 
         {/* Notes */}
-        <div className="max-w-[800px] mt-16 space-y-3 text-sm text-gray-600">
+        <div className="max-w-[600px] mx-auto mt-16 space-y-3 text-sm text-gray-600">
           <p className="font-bold text-gray-800">【お客様からのお問い合わせに関する注意事項】</p>
           <p>・お名前のご記載がないお問い合わせにつきましては、ご回答いたしかねる場合がございます。</p>
           <p>・いただいたすべてのお問い合わせに、個別でご返信できない場合がございます。あらかじめご了承ください。</p>
