@@ -163,12 +163,13 @@ export default function LiveEventPage() {
                               {day}
                             </div>
                             {dayEvents.map((event) => (
-                              <div
+                              <Link
                                 key={event.id}
-                                className="text-[9px] sm:text-[11px] leading-tight text-gray-800 mb-0.5 sm:mb-1 truncate"
+                                href={`/live-event/${event.id}`}
+                                className="block text-[9px] sm:text-[11px] leading-tight text-gray-800 hover:text-red-600 transition-colors mb-0.5 sm:mb-1 truncate"
                               >
                                 {event.title}
-                              </div>
+                              </Link>
                             ))}
                           </>
                         )}

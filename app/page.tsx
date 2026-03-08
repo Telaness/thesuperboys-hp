@@ -186,7 +186,7 @@ export default function Home() {
       <section className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div id="live-event">
-            <SectionHeading color="#e60012">LIVE / EVENT</SectionHeading>
+            <SectionHeading color="#e60012" fullLine>LIVE / EVENT</SectionHeading>
             <p className="section-subtitle">ライブ出演情報・イベント情報</p>
             <div className="mt-6 md:mt-10 space-y-6 min-h-[150px]">
               {liveEvents.map((event) => (
@@ -196,13 +196,13 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-            <div className="mt-8 md:mt-12 text-center">
+            <div className="mt-8 md:mt-12 text-right">
               <Link href="/live-event" className="view-all">VIEW ALL</Link>
             </div>
           </div>
 
           <div id="news">
-            <SectionHeading color="#0068b7">NEWS</SectionHeading>
+            <SectionHeading color="#0068b7" fullLine>NEWS</SectionHeading>
             <p className="section-subtitle">最新ニュース</p>
             <div className="mt-6 md:mt-10 space-y-6 min-h-[150px]">
               {newsItems.map((item) => (
@@ -212,7 +212,7 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-            <div className="mt-8 md:mt-12 text-center">
+            <div className="mt-8 md:mt-12 text-right">
               <Link href="/news" className="view-all">VIEW ALL</Link>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-right">
           <Link href="/movie" className="view-all">VIEW ALL</Link>
         </div>
       </section>
@@ -275,7 +275,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-right">
           <Link href="/discography" className="view-all">VIEW ALL</Link>
         </div>
       </section>
@@ -283,10 +283,10 @@ export default function Home() {
       {/* MEDIA & GOODS */}
       <section className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-          <div id="media">
-            <SectionHeading color="#ff6600">MEDIA</SectionHeading>
+          <div id="media" className="flex flex-col">
+            <SectionHeading color="#ff6600" fullLine>MEDIA</SectionHeading>
             <p className="section-subtitle">メディア出演情報</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px]">
+            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
               {mediaItems.map((item) => (
                 <div key={item.id} className="cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(item.date)}</p>
@@ -294,18 +294,18 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 md:mt-12 text-center">
+            <div className="mt-8 md:mt-12 text-right">
               <Link href="/media" className="view-all">VIEW ALL</Link>
             </div>
           </div>
 
-          <div id="goods">
-            <SectionHeading color="#e91e8c">GOODS</SectionHeading>
+          <div id="goods" className="flex flex-col">
+            <SectionHeading color="#e91e8c" fullLine>GOODS</SectionHeading>
             <p className="section-subtitle">グッズ情報</p>
-            <div className="mt-6 md:mt-10 min-h-[150px]">
+            <div className="mt-6 md:mt-10 min-h-[150px] flex-1">
               <p className="text-sm text-gray-600">公開までしばらくお待ちください。</p>
             </div>
-            <div className="mt-8 md:mt-12 text-center">
+            <div className="mt-8 md:mt-12 text-right">
               <Link href="/goods" className="view-all">VIEW ALL</Link>
             </div>
           </div>
