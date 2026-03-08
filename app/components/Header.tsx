@@ -117,30 +117,35 @@ export default function Header({ currentPath = "/" }: { currentPath?: string }) 
               </a>
             ))}
           </div>
-          {/* Hamburger button */}
-          <button
-            className="lg:hidden flex flex-col justify-center items-center w-10 h-10 relative z-[60]"
-            aria-label="メニュー"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <span
-              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out ${
-                menuOpen ? "rotate-45 translate-y-[3px]" : ""
-              }`}
-            />
-            <span
-              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out mt-1.5 ${
-                menuOpen ? "opacity-0 scale-x-0" : ""
-              }`}
-            />
-            <span
-              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out mt-1.5 ${
-                menuOpen ? "-rotate-45 -translate-y-[9px]" : ""
-              }`}
-            />
-          </button>
+          {/* Spacer for hamburger button */}
+          <div className="w-10 h-10 lg:hidden" />
         </div>
       </header>
+
+      {/* Hamburger button - outside header for z-index above modal */}
+      <button
+        className={`lg:hidden fixed top-3 right-6 z-[60] flex flex-col justify-center items-center w-10 h-10 ${
+          menuOpen ? "" : ""
+        }`}
+        aria-label="メニュー"
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
+        <span
+          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out ${
+            menuOpen ? "rotate-45 translate-y-[3px] bg-white" : "bg-black"
+          }`}
+        />
+        <span
+          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out mt-1.5 ${
+            menuOpen ? "opacity-0 scale-x-0 bg-white" : "bg-black"
+          }`}
+        />
+        <span
+          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out mt-1.5 ${
+            menuOpen ? "-rotate-45 -translate-y-[9px] bg-white" : "bg-black"
+          }`}
+        />
+      </button>
 
       {/* Mobile fullscreen menu */}
       <div
