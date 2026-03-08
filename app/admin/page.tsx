@@ -10,8 +10,6 @@ interface LiveEvent {
   id: string;
   title: string;
   date: string;
-  venue: string;
-  time: string;
   detail: string;
   published: boolean;
   image_url: string;
@@ -134,11 +132,7 @@ export default function AdminPage() {
 
   const handleNew = () => {
     const today = new Date().toISOString().split("T")[0];
-    if (tab === "live_events") {
-      setEditing({ id: "", title: "", date: today, venue: "", time: "", detail: "", published: true, image_url: "" });
-    } else {
-      setEditing({ id: "", title: "", date: today, detail: "", published: true, image_url: "" });
-    }
+    setEditing({ id: "", title: "", date: today, detail: "", published: true, image_url: "" });
     setIsNew(true);
     setImageFile(null);
     setImagePreview(null);
@@ -729,33 +723,6 @@ export default function AdminPage() {
                   style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
                 />
               </div>
-
-              {tab === "live_events" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">会場</label>
-                    <input
-                      type="text"
-                      value={(editing as LiveEvent).venue || ""}
-                      onChange={(e) => updateField("venue", e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
-                      style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                      placeholder="会場名"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">時間</label>
-                    <input
-                      type="text"
-                      value={(editing as LiveEvent).time || ""}
-                      onChange={(e) => updateField("time", e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
-                      style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                      placeholder="OPEN / START"
-                    />
-                  </div>
-                </div>
-              )}
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">詳細</label>

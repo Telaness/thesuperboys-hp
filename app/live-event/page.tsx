@@ -11,8 +11,6 @@ interface EventItem {
   id: string;
   title: string;
   date: string;
-  venue?: string;
-  time?: string;
   detail?: string;
 }
 
@@ -57,7 +55,7 @@ export default function LiveEventPage() {
 
       const { data } = await supabase
         .from("live_events")
-        .select("id, title, date, venue, time, detail")
+        .select("id, title, date, detail")
         .gte("date", startDate)
         .lt("date", endDate)
         .order("date", { ascending: true });
@@ -102,7 +100,7 @@ export default function LiveEventPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <Header currentPath="/live-event" />
 
-      <main className="max-w-[1200px] mx-auto px-6 py-16">
+      <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-10 sm:py-16">
         {/* Heading */}
         <SectionHeading color="#e60012">LIVE / EVENT</SectionHeading>
         <p className="section-subtitle mb-16">ライブ出演情報・イベント情報</p>
@@ -155,7 +153,7 @@ export default function LiveEventPage() {
                     return (
                       <td
                         key={di}
-                        className={`border border-gray-200 align-top p-1 sm:p-2 h-[60px] sm:h-[90px] md:h-[120px] w-[14.28%] ${
+                        className={`border border-gray-200 align-top p-0.5 sm:p-2 h-[56px] sm:h-[90px] md:h-[120px] w-[14.28%] overflow-hidden ${
                           day === null ? "bg-gray-50" : ""
                         } ${di === 0 ? "text-red-500" : di === 6 ? "text-blue-500" : ""}`}
                       >
@@ -206,20 +204,20 @@ export default function LiveEventPage() {
                   <Link
                     href={`/live-event/${event.id}`}
                     key={event.id}
-                    className="flex items-center gap-6 py-5 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer group"
+                    className="flex items-center gap-3 sm:gap-6 py-4 sm:py-5 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer group"
                   >
                     {/* Date block */}
-                    <div className="flex items-baseline gap-3 shrink-0 w-[160px]">
-                      <span className="font-impact text-3xl tracking-wide">
+                    <div className="flex items-baseline gap-1.5 sm:gap-3 shrink-0 w-[90px] sm:w-[160px]">
+                      <span className="font-impact text-xl sm:text-3xl tracking-wide">
                         {month}/{getDay(event.date)}
                       </span>
-                      <span className={`font-impact text-lg tracking-wide ${dowColor}`}>
+                      <span className={`font-impact text-sm sm:text-lg tracking-wide ${dowColor}`}>
                         {dowEn}
                       </span>
                     </div>
                     {/* Title */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate group-hover:text-red-600 transition-colors">
+                      <p className="text-xs sm:text-sm font-medium truncate group-hover:text-red-600 transition-colors">
                         {event.title}
                       </p>
                     </div>

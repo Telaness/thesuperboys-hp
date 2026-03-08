@@ -13,8 +13,6 @@ interface EventItem {
   id: string;
   title: string;
   date: string;
-  venue?: string;
-  time?: string;
   detail?: string;
   image_url?: string;
 }
@@ -92,21 +90,6 @@ export default function LiveEventDetailPage() {
           <h2 className="text-2xl font-bold leading-relaxed mb-10 pb-6 border-b border-gray-200">
             {event.title}
           </h2>
-
-          <dl className="space-y-6 mb-12">
-            {event.venue && (
-              <div className="flex flex-col sm:flex-row gap-2">
-                <dt className="text-sm font-bold text-gray-500 shrink-0 w-[100px]">会場</dt>
-                <dd className="text-sm text-gray-800">{event.venue}</dd>
-              </div>
-            )}
-            {event.time && (
-              <div className="flex flex-col sm:flex-row gap-2">
-                <dt className="text-sm font-bold text-gray-500 shrink-0 w-[100px]">時間</dt>
-                <dd className="text-sm text-gray-800">{event.time}</dd>
-              </div>
-            )}
-          </dl>
 
           {event.image_url && (
             <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden mb-10 shadow-lg">

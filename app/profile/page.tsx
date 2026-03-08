@@ -144,7 +144,7 @@ export default function ProfilePage() {
         <SectionHeading color="#00a74a">PROFILE</SectionHeading>
         <p className="section-subtitle mb-16">プロフィール情報</p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {members.map((member) => (
             <div
               key={member.name}
@@ -162,7 +162,7 @@ export default function ProfilePage() {
               {/* Name overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <span
-                  className="font-impact text-4xl tracking-wider text-white drop-shadow-lg"
+                  className="font-impact text-xl sm:text-4xl tracking-wider text-white drop-shadow-lg"
                   style={{
                     WebkitTextStroke: "1px rgba(0,0,0,0.3)",
                     textShadow: "2px 2px 8px rgba(0,0,0,0.5)",

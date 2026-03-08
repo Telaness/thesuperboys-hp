@@ -145,12 +145,12 @@ export default function Home() {
               <Image src="/single_jacket.jpg" alt="恋せよ乙女、愛せよ漢" fill className="object-cover" />
             </div>
           </div>
-          <div className="flex items-center justify-center aspect-square bg-black rounded">
+          <div className="hidden sm:flex items-center justify-center aspect-square bg-black rounded">
             <span className="coming-soon-text text-white">
               COMING<br />SOON
             </span>
           </div>
-          <div className="flex items-center justify-center aspect-square bg-black rounded">
+          <div className="hidden sm:flex items-center justify-center aspect-square bg-black rounded">
             <span className="coming-soon-text text-white">
               COMING<br />SOON
             </span>
