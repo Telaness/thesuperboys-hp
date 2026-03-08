@@ -8,19 +8,166 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-noto-sans-jp);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Impact font for English headings */
+.font-impact {
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Section heading text */
+.section-heading {
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 3.5rem;
+  font-weight: normal;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+  .section-heading {
+    font-size: 4rem;
+  }
+}
+
+/* Glow animation for underline */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scaleY(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scaleY(1.5);
+  }
+}
+
+.heading-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Navigation */
+.nav-link {
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 0.8rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+}
+
+.nav-link:hover {
+  opacity: 0.6;
+}
+
+/* View All link */
+.view-all {
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 0.9rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: opacity 0.2s;
+}
+
+.view-all:hover {
+  opacity: 0.6;
+}
+
+/* Event/News list item */
+.list-item-date {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.list-item-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+/* Profile overlay */
+.profile-overlay {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  cursor: pointer;
+}
+
+.profile-overlay-text {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 3.5rem;
+  font-weight: normal;
+  color: white;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .profile-overlay-text {
+    font-size: 2rem;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+.profile-overlay:hover {
+  opacity: 0.9;
+}
+
+/* Coming Soon text */
+.coming-soon-text {
+  font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Placeholder box for images */
+.placeholder-box {
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 0.875rem;
+}
+
+/* Footer */
+footer a {
+  transition: opacity 0.2s;
+}
+
+footer a:hover {
+  opacity: 0.6;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
