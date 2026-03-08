@@ -100,7 +100,7 @@ export default function LiveEventPage() {
     <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
       <Header currentPath="/live-event" />
 
-      <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-10 sm:py-16">
+      <main className="w-full max-w-[1200px] mx-auto px-3 sm:px-6 py-10 sm:py-16 overflow-hidden">
         {/* Heading */}
         <SectionHeading color="#e60012">LIVE / EVENT</SectionHeading>
         <p className="section-subtitle mb-16">ライブ出演情報・イベント情報</p>

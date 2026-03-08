@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SectionHeading from "./components/SectionHeading";
+import OpeningAnimation from "./components/OpeningAnimation";
 import { supabase } from "../lib/supabase";
 
 interface LiveEvent {
@@ -30,15 +31,24 @@ export default function Home() {
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [showOpening, setShowOpening] = useState(true);
+
+  useEffect(() => {
+    const seen = sessionStorage.getItem("opening_seen");
+    if (seen) setShowOpening(false);
+  }, []);
+
+  const handleOpeningComplete = useCallback(() => {
+    setShowOpening(false);
+    sessionStorage.setItem("opening_seen", "1");
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
       const today = new Date().toISOString().split("T")[0];
 
       const [eventsRes, newsRes, mediaRes] = await Promise.all([
-        // 本日以降で最も近いイベント3件
         supabase.from("live_events").select("id, title, date").gte("date", today).order("date", { ascending: true }).limit(3),
-        // 本日以前で最も近いニュース3件
         supabase.from("news").select("id, title, date").lte("date", today).order("date", { ascending: false }).limit(3),
         supabase.from("media").select("id, title, date").order("date", { ascending: false }).limit(2),
       ]);
@@ -53,6 +63,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {showOpening && <OpeningAnimation onComplete={handleOpeningComplete} />}
       <Header currentPath="/" />
 
       <div className="flex-1 w-full">

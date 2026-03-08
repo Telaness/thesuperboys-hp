@@ -15,6 +15,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
 }
 
 /* Impact font for English headings */
@@ -176,4 +177,116 @@ footer a:hover {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+/* ===== Opening Animation ===== */
+
+/* Flash lines */
+@keyframes opening-flash-h {
+  0% { transform: scaleX(0); opacity: 1; }
+  30% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes opening-flash-v {
+  0% { transform: scaleY(0); opacity: 1; }
+  30% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+.opening-flash-h {
+  animation: opening-flash-h 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: center;
+}
+.opening-flash-v {
+  animation: opening-flash-v 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  transform-origin: center;
+  opacity: 0;
+}
+
+/* Text reveal - slide up with clip */
+@keyframes opening-text-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+.opening-text-reveal {
+  animation: opening-text-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Text slam - scale down impact */
+@keyframes opening-text-slam {
+  0% {
+    opacity: 0;
+    transform: scale(2.5);
+    filter: blur(10px);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(0.95);
+    filter: blur(0px);
+  }
+  55% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+.opening-text-slam {
+  animation: opening-text-slam 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Logo rise */
+@keyframes opening-logo-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.opening-logo-rise {
+  animation: opening-logo-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Corner accents */
+@keyframes opening-corner-expand {
+  0% { opacity: 0; transform: scale(0.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.opening-corner-tl { animation: opening-corner-expand 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top left; }
+.opening-corner-tr { animation: opening-corner-expand 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards; transform-origin: top right; opacity: 0; }
+.opening-corner-bl { animation: opening-corner-expand 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; transform-origin: bottom left; opacity: 0; }
+.opening-corner-br { animation: opening-corner-expand 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards; transform-origin: bottom right; opacity: 0; }
+
+/* Particles */
+@keyframes opening-particle {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scaleY(0.3);
+  }
+}
+.opening-particle {
+  animation: opening-particle 1s ease-out forwards;
 }
