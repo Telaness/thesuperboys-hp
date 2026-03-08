@@ -117,35 +117,18 @@ export default function Header({ currentPath = "/" }: { currentPath?: string }) 
               </a>
             ))}
           </div>
-          {/* Spacer for hamburger button */}
-          <div className="w-10 h-10 lg:hidden" />
+          {/* Hamburger button (open) */}
+          <button
+            className="lg:hidden flex flex-col justify-center items-center w-10 h-10"
+            aria-label="メニューを開く"
+            onClick={() => setMenuOpen(true)}
+          >
+            <span className="block w-6 h-0.5 bg-black" />
+            <span className="block w-6 h-0.5 bg-black mt-1.5" />
+            <span className="block w-6 h-0.5 bg-black mt-1.5" />
+          </button>
         </div>
       </header>
-
-      {/* Hamburger button - outside header for z-index above modal */}
-      <button
-        className={`lg:hidden fixed top-3 right-6 z-[60] flex flex-col justify-center items-center w-10 h-10 ${
-          menuOpen ? "" : ""
-        }`}
-        aria-label="メニュー"
-        onClick={() => setMenuOpen(!menuOpen)}
-      >
-        <span
-          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out ${
-            menuOpen ? "rotate-45 translate-y-[3px] bg-white" : "bg-black"
-          }`}
-        />
-        <span
-          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out mt-1.5 ${
-            menuOpen ? "opacity-0 scale-x-0 bg-white" : "bg-black"
-          }`}
-        />
-        <span
-          className={`block w-6 h-0.5 transition-all duration-300 ease-in-out mt-1.5 ${
-            menuOpen ? "-rotate-45 -translate-y-[9px] bg-white" : "bg-black"
-          }`}
-        />
-      </button>
 
       {/* Mobile fullscreen menu */}
       <div
@@ -160,6 +143,18 @@ export default function Header({ currentPath = "/" }: { currentPath?: string }) 
           }`}
           onClick={() => setMenuOpen(false)}
         />
+
+        {/* Close button */}
+        <button
+          className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center text-white"
+          aria-label="メニューを閉じる"
+          onClick={() => setMenuOpen(false)}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
 
         {/* Menu content */}
         <div
