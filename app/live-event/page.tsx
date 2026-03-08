@@ -97,7 +97,7 @@ export default function LiveEventPage() {
   const getDay = (dateStr: string) => new Date(dateStr).getDate();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col overflow-x-hidden">
       <Header currentPath="/live-event" />
 
       <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-10 sm:py-16">
@@ -232,11 +232,11 @@ export default function LiveEventPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12">
+              <div className="flex items-center justify-center gap-1 sm:gap-2 mt-8 sm:mt-12 flex-wrap">
                 <button
                   onClick={() => setListPage(listPage - 1)}
                   disabled={listPage === 1}
-                  className="font-impact text-lg px-3 py-1 hover:opacity-60 transition-opacity disabled:opacity-20"
+                  className="font-impact text-base sm:text-lg px-2 sm:px-3 py-1 hover:opacity-60 transition-opacity disabled:opacity-20"
                 >
                   &lsaquo;
                 </button>
@@ -244,7 +244,7 @@ export default function LiveEventPage() {
                   <button
                     key={p}
                     onClick={() => setListPage(p)}
-                    className={`font-impact text-lg w-10 h-10 rounded transition-colors ${
+                    className={`font-impact text-base sm:text-lg w-8 h-8 sm:w-10 sm:h-10 rounded transition-colors ${
                       p === listPage
                         ? "bg-black text-white"
                         : "text-gray-500 hover:bg-gray-100"
@@ -256,7 +256,7 @@ export default function LiveEventPage() {
                 <button
                   onClick={() => setListPage(listPage + 1)}
                   disabled={listPage === totalPages}
-                  className="font-impact text-lg px-3 py-1 hover:opacity-60 transition-opacity disabled:opacity-20"
+                  className="font-impact text-base sm:text-lg px-2 sm:px-3 py-1 hover:opacity-60 transition-opacity disabled:opacity-20"
                 >
                   &rsaquo;
                 </button>
