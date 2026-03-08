@@ -27,11 +27,17 @@ body {
 /* Section heading text */
 .section-heading {
   font-family: Impact, "Arial Narrow", "Helvetica Neue", sans-serif;
-  font-size: 3.5rem;
+  font-size: 2rem;
   font-weight: normal;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   line-height: 1.1;
+}
+
+@media (min-width: 640px) {
+  .section-heading {
+    font-size: 3rem;
+  }
 }
 
 @media (min-width: 768px) {

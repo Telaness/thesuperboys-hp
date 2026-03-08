@@ -116,7 +116,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="mt-8 text-right">
+        <div className="mt-8 text-center">
           <Link href="/movie" className="view-all">VIEW ALL</Link>
         </div>
       </section>
@@ -129,7 +129,7 @@ export default function Home() {
           <Link href="/profile" className="profile-overlay block">
             <div className="relative w-full aspect-[2/1] bg-gray-900 rounded overflow-hidden">
               <Image src="/clickhere.jpg" alt="THE超BOYS プロフィール" fill className="object-cover object-top" />
-              <span className="profile-overlay-text">CLICK HERE</span>
+              {/* Image already contains CLICK HERE text */}
             </div>
           </Link>
         </div>
@@ -156,7 +156,7 @@ export default function Home() {
             </span>
           </div>
         </div>
-        <div className="mt-8 text-right">
+        <div className="mt-8 text-center">
           <Link href="/discography" className="view-all">VIEW ALL</Link>
         </div>
       </section>

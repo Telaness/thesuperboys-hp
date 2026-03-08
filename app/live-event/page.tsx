@@ -129,14 +129,14 @@ export default function LiveEventPage() {
         </div>
 
         {/* Calendar */}
-        <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse min-w-[700px]">
+        <div className="w-full">
+          <table className="w-full border-collapse table-fixed">
             <thead>
               <tr>
                 {dayLabels.map((label, i) => (
                   <th
                     key={label}
-                    className={`text-center text-sm font-bold py-3 ${
+                    className={`text-center text-xs sm:text-sm font-bold py-2 sm:py-3 w-[14.28%] ${
                       i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-gray-700"
                     }`}
                   >
@@ -155,19 +155,19 @@ export default function LiveEventPage() {
                     return (
                       <td
                         key={di}
-                        className={`border border-gray-200 align-top p-2 h-[120px] w-[14.28%] ${
+                        className={`border border-gray-200 align-top p-1 sm:p-2 h-[60px] sm:h-[90px] md:h-[120px] w-[14.28%] ${
                           day === null ? "bg-gray-50" : ""
                         } ${di === 0 ? "text-red-500" : di === 6 ? "text-blue-500" : ""}`}
                       >
                         {day !== null && (
                           <>
-                            <div className="text-right text-sm font-medium mb-1">
-                              {day}日
+                            <div className="text-right text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">
+                              {day}
                             </div>
                             {dayEvents.map((event) => (
                               <div
                                 key={event.id}
-                                className="text-[11px] leading-tight text-gray-800 mb-1"
+                                className="text-[9px] sm:text-[11px] leading-tight text-gray-800 mb-0.5 sm:mb-1 truncate"
                               >
                                 {event.title}
                               </div>

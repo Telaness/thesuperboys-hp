@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -53,58 +56,161 @@ const socialLinks = [
 ];
 
 export default function Header({ currentPath = "/" }: { currentPath?: string }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-      <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between h-16">
-        <Link href="/" className="flex-shrink-0">
-          <Image
-            src="/thesuperboyssama_logotype_color.png"
-            alt="THE超BOYS"
-            width={120}
-            height={32}
-            className="h-10 w-auto"
-          />
-        </Link>
-        <nav className="hidden lg:flex items-center gap-5">
-          {navItems.map((item) => {
-            const isActive =
-              currentPath === item.href ||
-              (item.href !== "/" && currentPath.startsWith(item.href));
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="nav-link"
-                style={{
-                  textDecoration: isActive ? "underline" : "none",
-                  textUnderlineOffset: "4px",
-                }}
+    <>
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between h-16">
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/thesuperboyssama_logotype_color.png"
+              alt="THE超BOYS"
+              width={120}
+              height={32}
+              className="h-10 w-auto"
+            />
+          </Link>
+          <nav className="hidden lg:flex items-center gap-5">
+            {navItems.map((item) => {
+              const isActive =
+                currentPath === item.href ||
+                (item.href !== "/" && currentPath.startsWith(item.href));
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="nav-link"
+                  style={{
+                    textDecoration: isActive ? "underline" : "none",
+                    textUnderlineOffset: "4px",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="hidden lg:flex items-center gap-3">
+            {socialLinks.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:opacity-70 transition-opacity"
               >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="hidden lg:flex items-center gap-3">
-          {socialLinks.map((social) => (
-            <a
-              key={social.label}
-              href={social.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={social.label}
-              className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:opacity-70 transition-opacity"
-            >
-              {social.icon}
-            </a>
-          ))}
+                {social.icon}
+              </a>
+            ))}
+          </div>
+          {/* Hamburger button */}
+          <button
+            className="lg:hidden flex flex-col justify-center items-center w-10 h-10 relative z-[60]"
+            aria-label="メニュー"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span
+              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out ${
+                menuOpen ? "rotate-45 translate-y-[3px]" : ""
+              }`}
+            />
+            <span
+              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out mt-1.5 ${
+                menuOpen ? "opacity-0 scale-x-0" : ""
+              }`}
+            />
+            <span
+              className={`block w-6 h-0.5 bg-black transition-all duration-300 ease-in-out mt-1.5 ${
+                menuOpen ? "-rotate-45 -translate-y-[9px]" : ""
+              }`}
+            />
+          </button>
         </div>
-        <button className="lg:hidden flex flex-col gap-1.5 p-2" aria-label="メニュー">
-          <span className="block w-6 h-0.5 bg-black"></span>
-          <span className="block w-6 h-0.5 bg-black"></span>
-          <span className="block w-6 h-0.5 bg-black"></span>
-        </button>
+      </header>
+
+      {/* Mobile fullscreen menu */}
+      <div
+        className={`fixed inset-0 z-[55] lg:hidden transition-all duration-500 ease-in-out ${
+          menuOpen ? "visible" : "invisible"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black transition-opacity duration-500 ${
+            menuOpen ? "opacity-90" : "opacity-0"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        />
+
+        {/* Menu content */}
+        <div
+          className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-500 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <nav className="flex flex-col items-center gap-1">
+            {navItems.map((item, index) => {
+              const isActive =
+                currentPath === item.href ||
+                (item.href !== "/" && currentPath.startsWith(item.href));
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`font-impact text-2xl tracking-[0.15em] uppercase transition-all duration-500 py-2 ${
+                    isActive ? "text-red-500" : "text-white hover:text-red-400"
+                  }`}
+                  style={{
+                    transitionDelay: menuOpen ? `${index * 50}ms` : "0ms",
+                    transform: menuOpen ? "translateY(0)" : "translateY(20px)",
+                    opacity: menuOpen ? 1 : 0,
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Social links */}
+          <div
+            className="flex items-center gap-4 mt-10 transition-all duration-500"
+            style={{
+              transitionDelay: menuOpen ? `${navItems.length * 50}ms` : "0ms",
+              transform: menuOpen ? "translateY(0)" : "translateY(20px)",
+              opacity: menuOpen ? 1 : 0,
+            }}
+          >
+            {socialLinks.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+              >
+                {social.icon}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
-    </header>
+    </>
   );
 }
