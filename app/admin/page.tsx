@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabase";
+import RichTextEditor from "../components/RichTextEditor";
 
 type Tab = "live_events" | "news" | "media" | "discography";
 
@@ -629,24 +630,25 @@ export default function AdminPage() {
               {tab === "discography" && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
-                    Apple Music リンク <span className="text-red-500">*必須</span>
+                    リンク <span className="text-red-500">*必須</span>
                   </label>
                   <input type="url" value={"link_url" in editing ? (editing as DiscographyItem).link_url : ""}
                     onChange={(e) => updateField("link_url", e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all"
                     style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                    placeholder="https://music.apple.com/..." />
+                    placeholder="https://..." />
                 </div>
               )}
 
               {tab !== "discography" && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">詳細</label>
-                  <textarea value={"detail" in editing ? (editing as LiveEvent).detail || "" : ""}
-                    onChange={(e) => updateField("detail", e.target.value)} rows={5}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all resize-vertical"
-                    style={{ "--tw-ring-color": config.color + "40" } as React.CSSProperties}
-                    placeholder="詳細情報を入力..." />
+                  <RichTextEditor
+                    value={"detail" in editing ? (editing as LiveEvent).detail || "" : ""}
+                    onChange={(html) => updateField("detail", html)}
+                    accentColor={config.color}
+                    placeholder="詳細情報を入力..."
+                  />
                 </div>
               )}
 

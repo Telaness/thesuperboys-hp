@@ -154,7 +154,7 @@ export default function LiveEventPage() {
                       <td
                         key={di}
                         className={`border border-gray-200 align-top p-0.5 sm:p-2 h-[56px] sm:h-[90px] md:h-[120px] w-[14.28%] overflow-hidden ${
-                          day === null ? "bg-gray-50" : ""
+                          day === null ? "bg-gray-50" : dayEvents.length > 0 ? "bg-red-50" : ""
                         } ${di === 0 ? "text-red-500" : di === 6 ? "text-blue-500" : ""}`}
                       >
                         {day !== null && (

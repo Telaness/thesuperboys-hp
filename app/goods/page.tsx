@@ -11,7 +11,7 @@ export default function GoodsPage() {
         <SectionHeading color="#e91e8c">GOODS</SectionHeading>
         <p className="section-subtitle mb-16">グッズ情報</p>
 
-        <p className="text-sm text-gray-600">公開までしばらくお待ちください。</p>
+        <p className="text-sm text-gray-900">公開までしばらくお待ちください。</p>
       </main>
 
       <Footer />

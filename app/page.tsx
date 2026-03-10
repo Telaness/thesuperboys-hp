@@ -6,7 +6,6 @@ import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import SectionHeading from "./components/SectionHeading";
-import OpeningAnimation from "./components/OpeningAnimation";
 import { supabase } from "../lib/supabase";
 
 interface LiveEvent {
@@ -39,17 +38,6 @@ export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [discoItems, setDiscoItems] = useState<DiscographyItem[]>([]);
-  const [showOpening, setShowOpening] = useState(true);
-
-  useEffect(() => {
-    const seen = sessionStorage.getItem("opening_seen");
-    if (seen) setShowOpening(false);
-  }, []);
-
-  const handleOpeningComplete = useCallback(() => {
-    setShowOpening(false);
-    sessionStorage.setItem("opening_seen", "1");
-  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -69,14 +57,14 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const heroImages = [
-    "/top/top_artist_photo.jpg",
-    "/top/line.jpg",
-    "/top/muchU.jpg",
+  const heroSlideData = [
+    { src: "/top/top_artist_photo.jpg", href: "" },
+    { src: "/top/line.jpg", href: "https://line.me/R/ti/p/@147dvbcj?oat__id=6310431" },
+    { src: "/top/muchU.jpg", href: "https://muchulive.com/" },
   ];
-  const heroCount = heroImages.length;
-  // Clone first image at end for seamless loop
-  const heroSlides = [...heroImages, heroImages[0]];
+  const heroCount = heroSlideData.length;
+  // Clone first slide at end for seamless loop
+  const heroSlides = [...heroSlideData, heroSlideData[0]];
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransition, setHeroTransition] = useState(true);
   const heroTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -85,7 +73,7 @@ export default function Home() {
     if (heroTimer.current) clearInterval(heroTimer.current);
     heroTimer.current = setInterval(() => {
       setHeroIndex((prev) => prev + 1);
-    }, 5000);
+    }, 6000);
   }, []);
 
   useEffect(() => {
@@ -98,11 +86,17 @@ export default function Home() {
   // When reaching the clone slide, snap back to real first slide
   useEffect(() => {
     if (heroIndex === heroCount) {
-      const timeout = setTimeout(() => {
+      const snapTimeout = setTimeout(() => {
         setHeroTransition(false);
         setHeroIndex(0);
+        // Re-enable transition after browser paints the snap
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setHeroTransition(true);
+          });
+        });
       }, 1400);
-      return () => clearTimeout(timeout);
+      return () => clearTimeout(snapTimeout);
     }
     setHeroTransition(true);
   }, [heroIndex, heroCount]);
@@ -111,28 +105,36 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {showOpening && <OpeningAnimation onComplete={handleOpeningComplete} />}
       <Header currentPath="/" />
 
       <div className="flex-1 w-full">
       {/* Hero Slider */}
-      <section className="w-full">
-        <div className="relative w-full aspect-[16/9] max-h-[80vh] bg-black overflow-hidden">
+      <section className="w-full max-w-[1050px] mx-auto">
+        <div className="relative w-full aspect-[4/3] max-h-[80vh] bg-black overflow-hidden">
           <div
             className={`flex h-full ${heroTransition ? "transition-transform duration-[1400ms] ease-in-out" : ""}`}
             style={{ transform: `translateX(-${heroIndex * 100}%)` }}
           >
-            {heroSlides.map((src, i) => (
-              <div key={`slide-${i}`} className="relative w-full h-full flex-shrink-0">
+            {heroSlides.map((slide, i) => {
+              const inner = (
                 <Image
-                  src={src}
+                  src={slide.src}
                   alt={`THE超BOYS メインビジュアル ${(i % heroCount) + 1}`}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   priority={i === 0}
                 />
-              </div>
-            ))}
+              );
+              return (
+                <div key={`slide-${i}`} className="relative w-full h-full flex-shrink-0">
+                  {slide.href ? (
+                    <a href={slide.href} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                      {inner}
+                    </a>
+                  ) : inner}
+                </div>
+              );
+            })}
           </div>
           {/* Left arrow */}
           <button
@@ -164,7 +166,7 @@ export default function Home() {
           </button>
           {/* Indicators */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {heroImages.map((_, i) => (
+            {heroSlideData.map((_, i) => (
               <button
                 key={i}
                 onClick={() => {
@@ -183,12 +185,12 @@ export default function Home() {
       </section>
 
       {/* LIVE/EVENT & NEWS */}
-      <section className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section className="max-w-[1050px] mx-auto px-6 py-10 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-          <div id="live-event">
+          <div id="live-event" className="flex flex-col">
             <SectionHeading color="#e60012">LIVE / EVENT</SectionHeading>
             <p className="section-subtitle">ライブ出演情報・イベント情報</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px]">
+            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
               {liveEvents.map((event) => (
                 <Link key={event.id} href={`/live-event/${event.id}`} className="block cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(event.date)}</p>
@@ -201,10 +203,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div id="news">
+          <div id="news" className="flex flex-col">
             <SectionHeading color="#0068b7">NEWS</SectionHeading>
             <p className="section-subtitle">最新ニュース</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px]">
+            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
               {newsItems.map((item) => (
                 <Link key={item.id} href={`/news/${item.id}`} className="block cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(item.date)}</p>
@@ -220,7 +222,7 @@ export default function Home() {
       </section>
 
       {/* MOVIE */}
-      <section id="movie" className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section id="movie" className="max-w-[1050px] mx-auto px-6 py-10 md:py-20">
         <SectionHeading color="#f5c500">MOVIE</SectionHeading>
         <p className="section-subtitle">ミュージックビデオ情報</p>
         <div className="mt-6 md:mt-10">
@@ -241,7 +243,7 @@ export default function Home() {
       </section>
 
       {/* PROFILE */}
-      <section id="profile" className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section id="profile" className="max-w-[1050px] mx-auto px-6 py-10 md:py-20">
         <SectionHeading color="#00a74a">PROFILE</SectionHeading>
         <p className="section-subtitle">プロフィール情報</p>
         <div className="mt-6 md:mt-10">
@@ -255,7 +257,7 @@ export default function Home() {
       </section>
 
       {/* DISCOGRAPHY */}
-      <section id="discography" className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section id="discography" className="max-w-[1050px] mx-auto px-6 py-10 md:py-20">
         <SectionHeading color="#999999">DISCOGRAPHY</SectionHeading>
         <p className="section-subtitle">配信楽曲情報</p>
         <div className="mt-6 md:mt-10 min-h-[200px] sm:min-h-[250px]">
@@ -281,7 +283,7 @@ export default function Home() {
       </section>
 
       {/* MEDIA & GOODS */}
-      <section className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section className="max-w-[1050px] mx-auto px-6 py-10 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div id="media" className="flex flex-col">
             <SectionHeading color="#ff6600">MEDIA</SectionHeading>
@@ -303,7 +305,7 @@ export default function Home() {
             <SectionHeading color="#e91e8c">GOODS</SectionHeading>
             <p className="section-subtitle">グッズ情報</p>
             <div className="mt-6 md:mt-10 min-h-[150px] flex-1">
-              <p className="text-sm text-gray-600">公開までしばらくお待ちください。</p>
+              <p className="text-sm text-gray-900">公開までしばらくお待ちください。</p>
             </div>
             <div className="mt-8 md:mt-12 text-right">
               <Link href="/goods" className="view-all">VIEW ALL</Link>
@@ -313,7 +315,7 @@ export default function Home() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="max-w-[1200px] mx-auto px-6 py-10 md:py-20">
+      <section id="contact" className="max-w-[1050px] mx-auto px-6 pt-10 pb-28 md:pt-20 md:pb-40">
         <SectionHeading color="#222222">CONTACT</SectionHeading>
         <p className="section-subtitle">お問い合わせ</p>
         <div className="mt-6 md:mt-10 space-y-4">
@@ -324,8 +326,8 @@ export default function Home() {
             </Link>
             お願いします。
           </p>
-          <p className="text-sm leading-relaxed text-gray-600">
-            お問い合わせいただいた内容によって返信できない場合がございますのでご了承ください。
+          <p className="text-sm leading-relaxed text-gray-900">
+            ※お問い合わせいただいた内容によって返信できない場合がございますのでご了承ください。
           </p>
         </div>
       </section>

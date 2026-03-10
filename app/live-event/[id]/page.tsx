@@ -92,23 +92,22 @@ export default function LiveEventDetailPage() {
           </h2>
 
           {event.image_url && (
-            <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden mb-10 shadow-lg">
+            <div className="mb-10">
               <Image
                 src={event.image_url}
                 alt={event.title}
-                fill
-                className="object-cover"
+                width={800}
+                height={600}
+                className="w-auto max-w-full h-auto"
                 sizes="800px"
               />
             </div>
           )}
 
           {event.detail && (
-            <div className="bg-gray-50 rounded-lg p-8 mb-12">
-              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
-                {event.detail}
-              </p>
-            </div>
+            <div className="bg-gray-50 rounded-lg p-8 mb-12 rich-text-content text-sm leading-relaxed text-gray-700"
+              dangerouslySetInnerHTML={{ __html: event.detail }}
+            />
           )}
 
           <div className="text-center pt-8 border-t border-gray-200">

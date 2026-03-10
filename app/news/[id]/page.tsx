@@ -83,23 +83,22 @@ export default function NewsDetailPage() {
           </h2>
 
           {item.image_url && (
-            <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden mb-10 shadow-lg">
+            <div className="mb-10">
               <Image
                 src={item.image_url}
                 alt={item.title}
-                fill
-                className="object-cover"
+                width={800}
+                height={600}
+                className="w-auto max-w-full h-auto"
                 sizes="800px"
               />
             </div>
           )}
 
           {item.detail && (
-            <div className="mb-12">
-              <p className="text-sm leading-loose text-gray-700 whitespace-pre-wrap">
-                {item.detail}
-              </p>
-            </div>
+            <div className="mb-12 rich-text-content text-sm leading-loose text-gray-700"
+              dangerouslySetInnerHTML={{ __html: item.detail }}
+            />
           )}
 
           <div className="text-center pt-8 border-t border-gray-200">

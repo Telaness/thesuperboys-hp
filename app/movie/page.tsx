@@ -30,7 +30,7 @@ export default function MoviePage() {
                   className="absolute inset-0 w-full h-full"
                 />
               </div>
-              <p className="mt-4 text-sm font-medium text-gray-700">{movie.title}</p>
+              <p className="mt-4 text-sm font-medium text-gray-700">「恋せよ乙女、愛せよ漢」Music Video</p>
             </div>
           ))}
         </div>
