@@ -97,7 +97,7 @@ export default function MediaDetailPage() {
 
           {item.detail && (
             <div className="mb-12 rich-text-content text-sm leading-loose text-gray-700"
-              dangerouslySetInnerHTML={{ __html: item.detail }}
+              dangerouslySetInnerHTML={{ __html: item.detail.replace(/\n/g, "<br>") }}
             />
           )}
 

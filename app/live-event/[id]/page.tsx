@@ -106,7 +106,7 @@ export default function LiveEventDetailPage() {
 
           {event.detail && (
             <div className="bg-gray-50 rounded-lg p-8 mb-12 rich-text-content text-sm leading-relaxed text-gray-700"
-              dangerouslySetInnerHTML={{ __html: event.detail }}
+              dangerouslySetInnerHTML={{ __html: event.detail.replace(/\n/g, "<br>") }}
             />
           )}
 
