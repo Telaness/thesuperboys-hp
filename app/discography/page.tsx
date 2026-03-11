@@ -33,7 +33,7 @@ export default function DiscographyPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <Header currentPath="/discography" />
 
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-16">
+      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 pt-16 pb-32">
         <SectionHeading color="#999999">DISCOGRAPHY</SectionHeading>
         <p className="section-subtitle mb-16">配信楽曲情報</p>
 

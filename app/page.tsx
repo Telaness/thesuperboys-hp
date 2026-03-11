@@ -315,7 +315,7 @@ export default function Home() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="max-w-[1050px] mx-auto px-6 pt-10 pb-28 md:pt-20 md:pb-40">
+      <section id="contact" className="max-w-[1050px] mx-auto px-6 pt-10 pb-28 md:pt-20 md:pb-56">
         <SectionHeading color="#222222">CONTACT</SectionHeading>
         <p className="section-subtitle">お問い合わせ</p>
         <div className="mt-6 md:mt-10 space-y-4">

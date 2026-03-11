@@ -36,7 +36,7 @@ export default function MediaPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <Header currentPath="/media" />
 
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-16">
+      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 pt-16 pb-32">
         <SectionHeading color="#ff6600">MEDIA</SectionHeading>
         <p className="section-subtitle mb-16">メディア出演情報</p>
 
