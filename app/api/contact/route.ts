@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     await resend.emails.send({
       from: "THE超BOYS お問い合わせ <contact@thesuperboys.jp>",
-      to: "support@withhero.info",
+      to: "taichi.murakami@telaness.com",
       replyTo: email,
       subject: `【お問い合わせ】${lastName} ${firstName} 様`,
       html: `
