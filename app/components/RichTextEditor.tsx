@@ -21,7 +21,9 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
 
   useEffect(() => {
     if (editorRef.current && !isInitializedRef.current) {
-      editorRef.current.innerHTML = value || "";
+      // プレーンテキストの改行(\n)をHTMLの<br>に変換（既存データの互換性対応）
+      const html = (value || "").replace(/\n/g, "<br>");
+      editorRef.current.innerHTML = html;
       isInitializedRef.current = true;
     }
   }, [value]);
