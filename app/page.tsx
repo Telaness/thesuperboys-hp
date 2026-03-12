@@ -116,7 +116,7 @@ export default function Home() {
 
       <div className="flex-1 w-full">
       {/* Hero Slider */}
-      <section className="w-full max-w-[650px] mx-auto">
+      <section className="w-full max-w-[900px] mx-auto">
         <div className="relative w-full overflow-hidden">
           <div
             ref={sliderRef}
