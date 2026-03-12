@@ -5,7 +5,7 @@ import Image from "next/image";
 import { supabase } from "../../lib/supabase";
 import RichTextEditor from "../components/RichTextEditor";
 
-type Tab = "live_events" | "news" | "media" | "discography";
+type Tab = "live_events" | "news" | "media" | "discography" | "footer_pages";
 
 interface LiveEvent {
   id: string;
@@ -42,7 +42,15 @@ interface DiscographyItem {
   published: boolean;
 }
 
-type ContentItem = LiveEvent | NewsItem | MediaItem | DiscographyItem;
+interface FooterPage {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  published: boolean;
+}
+
+type ContentItem = LiveEvent | NewsItem | MediaItem | DiscographyItem | FooterPage;
 
 const tabConfig = {
   live_events: {
@@ -97,6 +105,18 @@ const tabConfig = {
     color: "#999999",
     imageRequired: true,
   },
+  footer_pages: {
+    label: "PAGES",
+    shortLabel: "PAGES",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      </svg>
+    ),
+    color: "#6b7280",
+    imageRequired: false,
+  },
 };
 
 export default function AdminPage() {
@@ -143,7 +163,7 @@ export default function AdminPage() {
 
   const fetchItems = useCallback(async () => {
     const query = supabase.from(tab).select("*");
-    if (tab === "discography") {
+    if (tab === "discography" || tab === "footer_pages") {
       query.order("created_at", { ascending: false });
     } else {
       query.order("date", { ascending: false });
@@ -157,7 +177,9 @@ export default function AdminPage() {
   }, [loggedIn, fetchItems]);
 
   const handleNew = () => {
-    if (tab === "discography") {
+    if (tab === "footer_pages") {
+      setEditing({ id: "", slug: "", title: "", content: "", published: true } as FooterPage);
+    } else if (tab === "discography") {
       setEditing({ id: "", title: "", image_url: "", link_url: "", published: true } as DiscographyItem);
     } else {
       const today = new Date().toISOString().split("T")[0];
@@ -172,7 +194,7 @@ export default function AdminPage() {
     setEditing({ ...item });
     setIsNew(false);
     setImageFile(null);
-    setImagePreview(item.image_url || null);
+    setImagePreview((item as LiveEvent).image_url || null);
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -188,23 +210,34 @@ export default function AdminPage() {
 
   const handleSave = async () => {
     if (!editing) return;
-    if ((tab === "media" || tab === "discography") && !editing.image_url && !imageFile) {
+    if ((tab === "media" || tab === "discography") && !(editing as LiveEvent).image_url && !imageFile) {
       alert("画像は必須です。");
       return;
     }
     setSaving(true);
     try {
-      let imageUrl = editing.image_url || "";
-      if (imageFile) {
-        setUploading(true);
-        imageUrl = await uploadImage(imageFile);
-        setUploading(false);
-      }
-      const { id, ...rest } = { ...editing, image_url: imageUrl };
-      if (isNew) {
-        await supabase.from(tab).insert(rest);
+      let saveData: Record<string, unknown>;
+
+      if (tab === "footer_pages") {
+        const { id, ...rest } = editing as FooterPage;
+        void id;
+        saveData = rest;
       } else {
-        await supabase.from(tab).update(rest).eq("id", id);
+        let imageUrl = (editing as LiveEvent).image_url || "";
+        if (imageFile) {
+          setUploading(true);
+          imageUrl = await uploadImage(imageFile);
+          setUploading(false);
+        }
+        const { id, ...rest } = { ...editing, image_url: imageUrl };
+        void id;
+        saveData = rest;
+      }
+
+      if (isNew) {
+        await supabase.from(tab).insert(saveData);
+      } else {
+        await supabase.from(tab).update(saveData).eq("id", editing.id);
       }
       setEditing(null);
       setIsNew(false);
@@ -396,15 +429,17 @@ export default function AdminPage() {
               </div>
               <h1 className="text-sm font-bold text-gray-900 truncate">{config.label}</h1>
             </div>
-            <button onClick={handleNew}
-              className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.97]"
-              style={{ backgroundColor: config.color }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              追加
-            </button>
+            {tab !== "footer_pages" && (
+              <button onClick={handleNew}
+                className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.97]"
+                style={{ backgroundColor: config.color }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                追加
+              </button>
+            )}
           </div>
           {/* Mobile tab bar */}
           <div className="lg:hidden flex border-t border-gray-100 overflow-x-auto">
@@ -448,17 +483,23 @@ export default function AdminPage() {
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" />
                 </svg>
                 <p className="text-sm font-medium">データがありません</p>
-                <p className="text-xs text-gray-300 mt-1">「追加」ボタンから作成してください</p>
+                <p className="text-xs text-gray-300 mt-1">
+                  {tab === "footer_pages" ? "データベースにページを登録してください" : "「追加」ボタンから作成してください"}
+                </p>
               </div>
             ) : (
               <div>
                 {/* Desktop table header */}
                 <div className={`hidden lg:grid gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/50 ${
-                  tab === "discography" ? "grid-cols-[80px_48px_1fr_120px]" : "grid-cols-[80px_48px_100px_1fr_120px]"
+                  tab === "footer_pages" ? "grid-cols-[80px_120px_1fr_120px]" : tab === "discography" ? "grid-cols-[80px_48px_1fr_120px]" : "grid-cols-[80px_48px_100px_1fr_120px]"
                 }`}>
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ステータス</span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">画像</span>
-                  {tab !== "discography" && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">日付</span>}
+                  {tab === "footer_pages" ? (
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">スラッグ</span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">画像</span>
+                  )}
+                  {tab !== "discography" && tab !== "footer_pages" && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">日付</span>}
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">タイトル</span>
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right">操作</span>
                 </div>
@@ -467,7 +508,7 @@ export default function AdminPage() {
                   <div key={item.id} className={index !== items.length - 1 ? "border-b border-gray-50 lg:border-gray-50" : ""}>
                     {/* Desktop row */}
                     <div className={`hidden lg:grid gap-3 px-4 py-2.5 items-center hover:bg-gray-50/80 ${
-                      tab === "discography" ? "grid-cols-[80px_48px_1fr_120px]" : "grid-cols-[80px_48px_100px_1fr_120px]"
+                      tab === "footer_pages" ? "grid-cols-[80px_120px_1fr_120px]" : tab === "discography" ? "grid-cols-[80px_48px_1fr_120px]" : "grid-cols-[80px_48px_100px_1fr_120px]"
                     }`}>
                       <div>
                         <button onClick={() => handleTogglePublish(item)}
@@ -478,33 +519,43 @@ export default function AdminPage() {
                           {item.published ? "公開" : "非公開"}
                         </button>
                       </div>
-                      <div>
-                        {item.image_url ? (
-                          <div className="w-9 h-9 rounded-md overflow-hidden bg-gray-100 relative">
-                            <Image src={item.image_url} alt="" fill className="object-cover" sizes="36px" />
-                          </div>
-                        ) : (
-                          <div className="w-9 h-9 rounded-md bg-gray-100 flex items-center justify-center">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                          </div>
-                        )}
-                      </div>
-                      {tab !== "discography" && (
+                      {tab === "footer_pages" ? (
+                        <div className="text-xs text-gray-500 font-mono truncate">{"slug" in item ? (item as FooterPage).slug : ""}</div>
+                      ) : (
+                        <div>
+                          {(item as LiveEvent).image_url ? (
+                            <div className="w-9 h-9 rounded-md overflow-hidden bg-gray-100 relative">
+                              <Image src={(item as LiveEvent).image_url} alt="" fill className="object-cover" sizes="36px" />
+                            </div>
+                          ) : (
+                            <div className="w-9 h-9 rounded-md bg-gray-100 flex items-center justify-center">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {tab !== "discography" && tab !== "footer_pages" && (
                         <div className="text-xs text-gray-400 tabular-nums">{"date" in item ? (item as LiveEvent).date : ""}</div>
                       )}
                       <div className="text-sm font-medium text-gray-900 truncate">{item.title}</div>
                       <div className="flex items-center justify-end gap-0.5">
                         <button onClick={() => handleEdit(item)} className="px-2 py-1 rounded text-[11px] font-medium text-blue-600 hover:bg-blue-50 transition-colors">編集</button>
-                        <button onClick={() => handleDelete(item.id)} className="px-2 py-1 rounded text-[11px] font-medium text-red-400 hover:bg-red-50 transition-colors">削除</button>
+                        {tab !== "footer_pages" && (
+                          <button onClick={() => handleDelete(item.id)} className="px-2 py-1 rounded text-[11px] font-medium text-red-400 hover:bg-red-50 transition-colors">削除</button>
+                        )}
                       </div>
                     </div>
 
                     {/* Mobile card */}
                     <div className="lg:hidden px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
-                        {item.image_url ? (
+                        {tab === "footer_pages" ? (
+                          <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+                          </div>
+                        ) : (item as LiveEvent).image_url ? (
                           <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 relative flex-shrink-0">
-                            <Image src={item.image_url} alt="" fill className="object-cover" sizes="40px" />
+                            <Image src={(item as LiveEvent).image_url} alt="" fill className="object-cover" sizes="40px" />
                           </div>
                         ) : (
                           <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -518,7 +569,10 @@ export default function AdminPage() {
                               <span className={`w-1 h-1 rounded-full ${item.published ? "bg-green-500" : "bg-gray-300"}`} />
                               {item.published ? "公開" : "非公開"}
                             </span>
-                            {tab !== "discography" && "date" in item && (
+                            {tab === "footer_pages" && "slug" in item && (
+                              <span className="text-[10px] text-gray-400 font-mono">{(item as FooterPage).slug}</span>
+                            )}
+                            {tab !== "discography" && tab !== "footer_pages" && "date" in item && (
                               <span className="text-[10px] text-gray-400">{(item as LiveEvent).date}</span>
                             )}
                           </div>
@@ -535,9 +589,11 @@ export default function AdminPage() {
                               }
                             </svg>
                           </button>
-                          <button onClick={() => handleDelete(item.id)} className="w-7 h-7 flex items-center justify-center rounded text-red-400 hover:bg-red-50">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
-                          </button>
+                          {tab !== "footer_pages" && (
+                            <button onClick={() => handleDelete(item.id)} className="w-7 h-7 flex items-center justify-center rounded text-red-400 hover:bg-red-50">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -574,8 +630,16 @@ export default function AdminPage() {
 
             {/* Body */}
             <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-              {/* Image */}
-              <div>
+              {/* Slug display (footer_pages only) */}
+              {tab === "footer_pages" && "slug" in editing && (editing as FooterPage).slug && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">URL:</span>
+                  <span className="text-xs font-mono text-gray-600">/{(editing as FooterPage).slug}</span>
+                </div>
+              )}
+
+              {/* Image (not for footer_pages) */}
+              {tab !== "footer_pages" && <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
                   画像 {config.imageRequired && <span className="text-red-500">*必須</span>}
                 </label>
@@ -607,7 +671,7 @@ export default function AdminPage() {
                   </button>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
-              </div>
+              </div>}
 
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">タイトル</label>
@@ -617,7 +681,7 @@ export default function AdminPage() {
                   placeholder="タイトルを入力..." />
               </div>
 
-              {tab !== "discography" && (
+              {tab !== "discography" && tab !== "footer_pages" && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">日付</label>
                   <input type="date" value={"date" in editing ? (editing as LiveEvent).date : ""}
@@ -642,12 +706,16 @@ export default function AdminPage() {
 
               {tab !== "discography" && (
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">詳細</label>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">
+                    {tab === "footer_pages" ? "コンテンツ" : "詳細"}
+                  </label>
                   <RichTextEditor
-                    value={"detail" in editing ? (editing as LiveEvent).detail || "" : ""}
-                    onChange={(html) => updateField("detail", html)}
+                    value={tab === "footer_pages"
+                      ? ("content" in editing ? (editing as FooterPage).content || "" : "")
+                      : ("detail" in editing ? (editing as LiveEvent).detail || "" : "")}
+                    onChange={(html) => updateField(tab === "footer_pages" ? "content" : "detail", html)}
                     accentColor={config.color}
-                    placeholder="詳細情報を入力..."
+                    placeholder={tab === "footer_pages" ? "ページ内容を入力..." : "詳細情報を入力..."}
                   />
                 </div>
               )}
@@ -665,7 +733,7 @@ export default function AdminPage() {
             <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 py-3 flex justify-end gap-2">
               <button onClick={closeModal} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100">キャンセル</button>
               <button onClick={handleSave}
-                disabled={saving || !editing.title || (tab !== "discography" && !("date" in editing && (editing as LiveEvent).date)) || (tab === "discography" && !("link_url" in editing && (editing as DiscographyItem).link_url))}
+                disabled={saving || !editing.title || (tab !== "discography" && tab !== "footer_pages" && !("date" in editing && (editing as LiveEvent).date)) || (tab === "discography" && !("link_url" in editing && (editing as DiscographyItem).link_url))}
                 className="px-4 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-40 hover:opacity-90 active:scale-[0.97]"
                 style={{ backgroundColor: config.color }}>
                 {saving ? (

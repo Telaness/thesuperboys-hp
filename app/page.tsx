@@ -68,6 +68,7 @@ export default function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransition, setHeroTransition] = useState(true);
   const heroTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const resetHeroTimer = useCallback(() => {
     if (heroTimer.current) clearInterval(heroTimer.current);
@@ -85,20 +86,35 @@ export default function Home() {
 
   // When reaching the clone slide, snap back to real first slide
   useEffect(() => {
-    if (heroIndex === heroCount) {
-      const snapTimeout = setTimeout(() => {
-        setHeroTransition(false);
-        setHeroIndex(0);
-        // Re-enable transition after browser paints the snap
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setHeroTransition(true);
-          });
-        });
-      }, 1400);
-      return () => clearTimeout(snapTimeout);
+    if (heroIndex !== heroCount) {
+      setHeroTransition(true);
+      return;
     }
-    setHeroTransition(true);
+
+    const slider = sliderRef.current;
+    let snapped = false;
+
+    const snap = () => {
+      if (snapped) return;
+      snapped = true;
+      setHeroTransition(false);
+      setHeroIndex(0);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setHeroTransition(true);
+        });
+      });
+    };
+
+    const handleTransitionEnd = () => snap();
+    slider?.addEventListener("transitionend", handleTransitionEnd, { once: true });
+    // Fallback in case transitionend doesn't fire
+    const fallback = setTimeout(snap, 1600);
+
+    return () => {
+      slider?.removeEventListener("transitionend", handleTransitionEnd);
+      clearTimeout(fallback);
+    };
   }, [heroIndex, heroCount]);
 
   const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
@@ -109,10 +125,11 @@ export default function Home() {
 
       <div className="flex-1 w-full">
       {/* Hero Slider */}
-      <section className="w-full max-w-[1050px] mx-auto">
-        <div className="relative w-full aspect-[4/3] max-h-[80vh] bg-black overflow-hidden">
+      <section className="w-full max-w-[1400px] mx-auto">
+        <div className="relative w-full overflow-hidden">
           <div
-            className={`flex h-full ${heroTransition ? "transition-transform duration-[1400ms] ease-in-out" : ""}`}
+            ref={sliderRef}
+            className={`flex ${heroTransition ? "transition-transform duration-[1400ms] ease-in-out" : ""}`}
             style={{ transform: `translateX(-${heroIndex * 100}%)` }}
           >
             {heroSlides.map((slide, i) => {
@@ -120,15 +137,16 @@ export default function Home() {
                 <Image
                   src={slide.src}
                   alt={`THE超BOYS メインビジュアル ${(i % heroCount) + 1}`}
-                  fill
-                  className="object-cover"
+                  width={1400}
+                  height={1050}
+                  className="w-full h-auto"
                   priority={i === 0}
                 />
               );
               return (
-                <div key={`slide-${i}`} className="relative w-full h-full flex-shrink-0">
+                <div key={`slide-${i}`} className="w-full flex-shrink-0">
                   {slide.href ? (
-                    <a href={slide.href} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                    <a href={slide.href} target="_blank" rel="noopener noreferrer" className="block">
                       {inner}
                     </a>
                   ) : inner}
@@ -190,7 +208,7 @@ export default function Home() {
           <div id="live-event" className="flex flex-col">
             <SectionHeading color="#e60012">LIVE / EVENT</SectionHeading>
             <p className="section-subtitle">ライブ出演情報・イベント情報</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
+            <div className="mt-6 md:mt-10 space-y-6 md:min-h-[150px] md:flex-1">
               {liveEvents.map((event) => (
                 <Link key={event.id} href={`/live-event/${event.id}`} className="block cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(event.date)}</p>
@@ -206,7 +224,7 @@ export default function Home() {
           <div id="news" className="flex flex-col">
             <SectionHeading color="#0068b7">NEWS</SectionHeading>
             <p className="section-subtitle">最新ニュース</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
+            <div className="mt-6 md:mt-10 space-y-6 md:min-h-[150px] md:flex-1">
               {newsItems.map((item) => (
                 <Link key={item.id} href={`/news/${item.id}`} className="block cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(item.date)}</p>
@@ -288,7 +306,7 @@ export default function Home() {
           <div id="media" className="flex flex-col">
             <SectionHeading color="#ff6600">MEDIA</SectionHeading>
             <p className="section-subtitle">メディア出演情報</p>
-            <div className="mt-6 md:mt-10 space-y-6 min-h-[150px] flex-1">
+            <div className="mt-6 md:mt-10 space-y-6 md:min-h-[150px] md:flex-1">
               {mediaItems.map((item) => (
                 <div key={item.id} className="cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(item.date)}</p>
@@ -304,7 +322,7 @@ export default function Home() {
           <div id="goods" className="flex flex-col">
             <SectionHeading color="#e91e8c">GOODS</SectionHeading>
             <p className="section-subtitle">グッズ情報</p>
-            <div className="mt-6 md:mt-10 min-h-[150px] flex-1">
+            <div className="mt-6 md:mt-10 md:min-h-[150px] md:flex-1">
               <p className="text-sm text-gray-900">公開までしばらくお待ちください。</p>
             </div>
             <div className="mt-8 md:mt-12 text-right">

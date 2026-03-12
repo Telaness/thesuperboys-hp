@@ -65,6 +65,69 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
   const handleBold = () => execCommand("bold");
   const handleUnderline = () => execCommand("underline");
 
+  const autoLinkLastUrl = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+
+    const range = sel.getRangeAt(0);
+    const textNode = range.startContainer;
+    if (textNode.nodeType !== Node.TEXT_NODE) return;
+
+    // Check if already inside an <a> tag
+    let parent = textNode.parentElement;
+    while (parent && parent !== editorRef.current) {
+      if (parent.tagName === "A") return;
+      parent = parent.parentElement;
+    }
+
+    const text = textNode.textContent || "";
+    const cursorPos = range.startOffset;
+    const textBeforeCursor = text.slice(0, cursorPos);
+
+    const urlMatch = textBeforeCursor.match(/(https?:\/\/[^\s<]+)$/);
+    if (!urlMatch || urlMatch.index === undefined) return;
+
+    const url = urlMatch[1];
+    const urlStart = urlMatch.index;
+    const urlEnd = urlStart + url.length;
+
+    const linkRange = document.createRange();
+    linkRange.setStart(textNode, urlStart);
+    linkRange.setEnd(textNode, urlEnd);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = url;
+
+    linkRange.deleteContents();
+    linkRange.insertNode(link);
+
+    // Move cursor after the link
+    const newRange = document.createRange();
+    newRange.setStartAfter(link);
+    newRange.setEndAfter(link);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    handleInput();
+  }, [handleInput]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === " " || e.key === "Enter") {
+      autoLinkLastUrl();
+    }
+  }, [autoLinkLastUrl]);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+    // ペースト後にURL自動リンク化を実行
+    setTimeout(() => autoLinkLastUrl(), 0);
+  }, [autoLinkLastUrl]);
+
   const handleColorClick = () => {
     saveSelection();
     setShowColorPicker(!showColorPicker);
@@ -249,6 +312,8 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
           contentEditable
           onInput={handleInput}
           onBlur={handleInput}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           className="w-full bg-gray-50 border border-gray-200 rounded-b-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:bg-white transition-all min-h-[120px] max-h-[300px] overflow-y-auto rich-text-content"
           style={{
             "--tw-ring-color": accentColor + "40",

@@ -4,14 +4,14 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="bg-black text-white mt-auto">
-      <div className="max-w-[1400px] mx-auto px-6 py-10 lg:py-6">
-        <div className="mb-6 lg:mb-4">
+      <div className="max-w-[1400px] mx-auto px-6 py-4 sm:py-10 lg:py-6">
+        <div className="mb-2 sm:mb-6 lg:mb-4 flex justify-center sm:justify-start">
           <a href="https://www.withhero.info/" target="_blank" rel="noopener noreferrer">
             <Image src="/withhero_logo_footer.png" alt="with HERO" width={400} height={100} className="h-24 lg:h-24 w-auto" />
           </a>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-y-2 gap-x-8 text-sm text-gray-300 mb-6 lg:mb-4 items-start sm:items-center">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-y-2 gap-x-8 text-sm text-gray-300 mb-14 sm:mb-6 lg:mb-4 items-center">
           <Link href="/event-guide">イベントご参加ガイド</Link>
           <Link href="/photo-rules">撮影会ルールノート</Link>
           <Link href="/fan-letter">ファンレター・プレゼントに関して</Link>
