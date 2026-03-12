@@ -116,8 +116,8 @@ export default function Home() {
 
       <div className="flex-1 w-full">
       {/* Hero Slider */}
-      <section className="w-full max-w-[1400px] mx-auto">
-        <div className="relative w-full max-h-[75vh] overflow-hidden">
+      <section className="w-full max-w-[650px] mx-auto">
+        <div className="relative w-full overflow-hidden">
           <div
             ref={sliderRef}
             className={`flex ${heroTransition ? "transition-transform duration-[1400ms] ease-in-out" : ""}`}
