@@ -86,36 +86,27 @@ export default function Home() {
 
   // When reaching the clone slide, snap back to real first slide
   useEffect(() => {
-    if (heroIndex !== heroCount) {
-      setHeroTransition(true);
-      return;
-    }
+    if (heroIndex !== heroCount) return;
 
-    const slider = sliderRef.current;
-    let snapped = false;
-
-    const snap = () => {
-      if (snapped) return;
-      snapped = true;
+    // Wait for the transition to the clone slide to finish (1400ms duration + buffer)
+    const snapTimer = setTimeout(() => {
+      // Disable transition, snap to real first slide
       setHeroTransition(false);
       setHeroIndex(0);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setHeroTransition(true);
-        });
-      });
-    };
+    }, 1500);
 
-    const handleTransitionEnd = () => snap();
-    slider?.addEventListener("transitionend", handleTransitionEnd, { once: true });
-    // Fallback in case transitionend doesn't fire
-    const fallback = setTimeout(snap, 1600);
-
-    return () => {
-      slider?.removeEventListener("transitionend", handleTransitionEnd);
-      clearTimeout(fallback);
-    };
+    return () => clearTimeout(snapTimer);
   }, [heroIndex, heroCount]);
+
+  // Re-enable transition after snapping back (separate effect to ensure paint)
+  useEffect(() => {
+    if (heroIndex === 0 && !heroTransition) {
+      const enableTimer = setTimeout(() => {
+        setHeroTransition(true);
+      }, 50);
+      return () => clearTimeout(enableTimer);
+    }
+  }, [heroIndex, heroTransition]);
 
   const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
 
@@ -126,7 +117,7 @@ export default function Home() {
       <div className="flex-1 w-full">
       {/* Hero Slider */}
       <section className="w-full max-w-[1400px] mx-auto">
-        <div className="relative w-full overflow-hidden">
+        <div className="relative w-full max-h-[75vh] overflow-hidden">
           <div
             ref={sliderRef}
             className={`flex ${heroTransition ? "transition-transform duration-[1400ms] ease-in-out" : ""}`}
