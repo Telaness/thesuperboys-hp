@@ -12,10 +12,14 @@ interface RichTextEditorProps {
 export default function RichTextEditor({ value, onChange, accentColor, placeholder }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [showFontSizePicker, setShowFontSizePicker] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [savedSelection, setSavedSelection] = useState<Range | null>(null);
   const colorPickerRef = useRef<HTMLDivElement>(null);
+  const highlightPickerRef = useRef<HTMLDivElement>(null);
+  const fontSizePickerRef = useRef<HTMLDivElement>(null);
   const linkInputRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
 
@@ -128,10 +132,18 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
     setTimeout(() => autoLinkLastUrl(), 0);
   }, [autoLinkLastUrl]);
 
+  const closeAllPopups = useCallback(() => {
+    setShowColorPicker(false);
+    setShowHighlightPicker(false);
+    setShowFontSizePicker(false);
+    setShowLinkInput(false);
+  }, []);
+
   const handleColorClick = () => {
     saveSelection();
-    setShowColorPicker(!showColorPicker);
-    setShowLinkInput(false);
+    const next = !showColorPicker;
+    closeAllPopups();
+    setShowColorPicker(next);
   };
 
   const handleColorSelect = (color: string) => {
@@ -140,10 +152,63 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
     setShowColorPicker(false);
   };
 
+  const handleHighlightClick = () => {
+    saveSelection();
+    const next = !showHighlightPicker;
+    closeAllPopups();
+    setShowHighlightPicker(next);
+  };
+
+  const handleHighlightSelect = (color: string) => {
+    restoreSelection();
+    if (color === "transparent") {
+      execCommand("removeFormat");
+    } else {
+      execCommand("hiliteColor", color);
+    }
+    setShowHighlightPicker(false);
+  };
+
+  const handleFontSizeClick = () => {
+    saveSelection();
+    const next = !showFontSizePicker;
+    closeAllPopups();
+    setShowFontSizePicker(next);
+  };
+
+  const handleFontSizeSelect = (size: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      setShowFontSizePicker(false);
+      return;
+    }
+
+    if (size === "standard") {
+      // 標準：font-sizeのspanを除去してデフォルトに戻す
+      execCommand("removeFormat");
+    } else {
+      // 一旦fontSize 7でマーカーとなるfontタグを挿入し、それをspanに置換する
+      execCommand("fontSize", "7");
+      if (editorRef.current) {
+        const fontElements = editorRef.current.querySelectorAll('font[size="7"]');
+        fontElements.forEach((font) => {
+          const span = document.createElement("span");
+          span.style.fontSize = size;
+          span.innerHTML = font.innerHTML;
+          font.parentNode?.replaceChild(span, font);
+        });
+        handleInput();
+      }
+    }
+    setShowFontSizePicker(false);
+  };
+
   const handleLinkClick = () => {
     saveSelection();
-    setShowLinkInput(!showLinkInput);
-    setShowColorPicker(false);
+    const next = !showLinkInput;
+    closeAllPopups();
+    setShowLinkInput(next);
     setLinkUrl("");
   };
 
@@ -179,6 +244,12 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
       if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
         setShowColorPicker(false);
       }
+      if (highlightPickerRef.current && !highlightPickerRef.current.contains(e.target as Node)) {
+        setShowHighlightPicker(false);
+      }
+      if (fontSizePickerRef.current && !fontSizePickerRef.current.contains(e.target as Node)) {
+        setShowFontSizePicker(false);
+      }
       if (linkInputRef.current && !linkInputRef.current.contains(e.target as Node)) {
         setShowLinkInput(false);
       }
@@ -190,6 +261,32 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
   const colors = [
     "#000000", "#e60012", "#0068b7", "#ff6600", "#009944",
     "#920783", "#f39800", "#1d2088", "#888888", "#ffffff",
+  ];
+
+  const highlightColors = [
+    { color: "#ffff00", label: "黄色" },
+    { color: "#ffeb3b", label: "レモン" },
+    { color: "#00ff00", label: "緑" },
+    { color: "#7cfc00", label: "黄緑" },
+    { color: "#00ffff", label: "水色" },
+    { color: "#87ceeb", label: "スカイブルー" },
+    { color: "#ff69b4", label: "ピンク" },
+    { color: "#ff99cc", label: "ライトピンク" },
+    { color: "#ffa500", label: "オレンジ" },
+    { color: "#ffcc80", label: "ライトオレンジ" },
+    { color: "#e6b3ff", label: "ラベンダー" },
+    { color: "#ff8a80", label: "レッド" },
+    { color: "#d4edda", label: "ミント" },
+    { color: "#d1c4e9", label: "パープル" },
+    { color: "transparent", label: "解除" },
+  ];
+
+  const fontSizes = [
+    { value: "0.85em", label: "小" },
+    { value: "standard", label: "標準" },
+    { value: "1.15em", label: "大" },
+    { value: "1.35em", label: "特大" },
+    { value: "1.6em", label: "極大" },
   ];
 
   const isPlaceholderVisible = !value || value === "" || value === "<br>";
@@ -248,6 +345,74 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
                   style={{ backgroundColor: color }}
                   title={color}
                 />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Font Size */}
+        <div className="relative" ref={fontSizePickerRef}>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleFontSizeClick}
+            className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-200 transition-colors"
+            title="文字サイズ"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 7 4 4 20 4 20 7" />
+              <line x1="9" y1="20" x2="15" y2="20" />
+              <line x1="12" y1="4" x2="12" y2="20" />
+            </svg>
+          </button>
+
+          {showFontSizePicker && (
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-1.5 z-50 w-[80px]">
+              {fontSizes.map((size) => (
+                <button
+                  key={size.value}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleFontSizeSelect(size.value)}
+                  className="w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-700"
+                >
+                  {size.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Highlight */}
+        <div className="relative" ref={highlightPickerRef}>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleHighlightClick}
+            className="w-7 h-7 flex flex-col items-center justify-center rounded hover:bg-gray-200 transition-colors"
+            title="蛍光マーカー"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <div className="w-4 h-1 rounded-sm mt-0.5" style={{ backgroundColor: "#ffff00" }} />
+          </button>
+
+          {showHighlightPicker && (
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50 grid grid-cols-5 gap-1 w-[160px]">
+              {highlightColors.map((item) => (
+                <button
+                  key={item.color}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleHighlightSelect(item.color)}
+                  className="w-6 h-6 rounded-sm border border-gray-200 hover:scale-110 transition-transform text-[9px] flex items-center justify-center"
+                  style={{ backgroundColor: item.color === "transparent" ? "#f3f4f6" : item.color }}
+                  title={item.label}
+                >
+                  {item.color === "transparent" ? "✕" : ""}
+                </button>
               ))}
             </div>
           )}
