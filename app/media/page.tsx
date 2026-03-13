@@ -1,12 +1,21 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SectionHeading from "../components/SectionHeading";
 import { supabase } from "../../lib/supabase";
+
+export const metadata: Metadata = {
+  title: "MEDIA",
+  description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のメディア出演情報。テレビ・ラジオ・雑誌・YouTube・WEBメディアなどの出演スケジュール。",
+  alternates: { canonical: "/media" },
+  openGraph: {
+    title: "MEDIA | THE超BOYS 公式サイト",
+    description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のメディア出演情報。テレビ・ラジオ・雑誌・YouTube・WEBメディアなどの出演スケジュール。",
+    url: "/media",
+  },
+};
 
 interface MediaItem {
   id: string;
@@ -15,20 +24,14 @@ interface MediaItem {
   image_url: string;
 }
 
-export default function MediaPage() {
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+export default async function MediaPage() {
+  const { data } = await supabase
+    .from("media")
+    .select("id, title, date, image_url")
+    .eq("published", true)
+    .order("date", { ascending: false });
 
-  useEffect(() => {
-    async function fetchMedia() {
-      const { data } = await supabase
-        .from("media")
-        .select("id, title, date, image_url")
-        .eq("published", true)
-        .order("date", { ascending: false });
-      setMediaItems(data || []);
-    }
-    fetchMedia();
-  }, []);
+  const mediaItems: MediaItem[] = data || [];
 
   const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
 

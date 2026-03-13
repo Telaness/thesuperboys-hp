@@ -1,13 +1,13 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import type { Metadata } from "next";
+import { cache } from "react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import SectionHeading from "../../components/SectionHeading";
 import { supabase } from "../../../lib/supabase";
+import { sanitizeHtml } from "../../../lib/sanitize";
 
 interface NewsItem {
   id: string;
@@ -17,53 +17,51 @@ interface NewsItem {
   image_url?: string;
 }
 
-export default function NewsDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
-  const [item, setItem] = useState<NewsItem | null>(null);
-  const [loading, setLoading] = useState(true);
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-  useEffect(() => {
-    async function fetchNews() {
-      const { data } = await supabase
-        .from("news")
-        .select("*")
-        .eq("id", id)
-        .single();
-      setItem(data);
-      setLoading(false);
-    }
-    fetchNews();
-  }, [id]);
+const getNewsItem = cache(async (id: string): Promise<NewsItem | null> => {
+  const { data } = await supabase
+    .from("news")
+    .select("*")
+    .eq("id", id)
+    .eq("published", true)
+    .single();
+  return data;
+});
 
-  const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/news" />
-        <main className="flex-1 flex items-center justify-center">
-          <p className="text-gray-400">読み込み中...</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getNewsItem(id);
 
   if (!item) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/news" />
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-16 text-center">
-          <p className="text-gray-500 text-lg mt-20">ニュースが見つかりませんでした。</p>
-          <Link href="/news" className="inline-block mt-8 text-blue-600 underline underline-offset-4">
-            NEWS 一覧に戻る
-          </Link>
-        </main>
-        <Footer />
-      </div>
-    );
+    return { title: "ニュースが見つかりません" };
   }
+
+  return {
+    title: item.title,
+    description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のニュース: ${item.title}`,
+    alternates: { canonical: `/news/${id}` },
+    openGraph: {
+      title: `${item.title} | NEWS | THE超BOYS`,
+      description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のニュース: ${item.title}`,
+      url: `/news/${id}`,
+      type: "article",
+      ...(item.image_url && {
+        images: [{ url: item.image_url, alt: item.title }],
+      }),
+    },
+  };
+}
+
+export default async function NewsDetailPage({ params }: Props) {
+  const { id } = await params;
+  const item = await getNewsItem(id);
+
+  if (!item) notFound();
+
+  const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -97,7 +95,7 @@ export default function NewsDetailPage() {
 
           {item.detail && (
             <div className="mb-12 rich-text-content text-sm leading-loose text-gray-700"
-              dangerouslySetInnerHTML={{ __html: item.detail.replace(/\n/g, "<br>") }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.detail.replace(/\n/g, "<br>")) }}
             />
           )}
 

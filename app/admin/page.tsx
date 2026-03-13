@@ -139,9 +139,23 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // アカウント設定
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"email" | "password">("email");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setLoggedIn(true);
+      if (data.session) {
+        setLoggedIn(true);
+        setCurrentUserEmail(data.session.user.email ?? "");
+      }
       setChecking(false);
     });
   }, []);
@@ -149,11 +163,90 @@ export default function AdminPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoginError("メールアドレスまたはパスワードが正しくありません。");
     } else {
       setLoggedIn(true);
+      setCurrentUserEmail(data.user?.email ?? "");
+    }
+  };
+
+  const closeSettings = () => {
+    setSettingsOpen(false);
+    setCurrentPassword("");
+    setNewEmail("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setSettingsMessage(null);
+  };
+
+  const handleEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEmail || !currentPassword) return;
+    setSettingsSaving(true);
+    setSettingsMessage(null);
+    try {
+      // 現在のパスワードで再認証
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: currentUserEmail,
+        password: currentPassword,
+      });
+      if (authError) {
+        setSettingsMessage({ type: "error", text: "現在のパスワードが正しくありません。" });
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) {
+        setSettingsMessage({ type: "error", text: error.message });
+      } else {
+        setSettingsMessage({ type: "success", text: "確認メールを送信しました。メール内のリンクをクリックして変更を完了してください。" });
+        setCurrentPassword("");
+        setNewEmail("");
+      }
+    } catch {
+      setSettingsMessage({ type: "error", text: "エラーが発生しました。" });
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) return;
+    if (newPassword.length < 8) {
+      setSettingsMessage({ type: "error", text: "新しいパスワードは8文字以上で入力してください。" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setSettingsMessage({ type: "error", text: "新しいパスワードが一致しません。" });
+      return;
+    }
+    setSettingsSaving(true);
+    setSettingsMessage(null);
+    try {
+      // 現在のパスワードで再認証
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: currentUserEmail,
+        password: currentPassword,
+      });
+      if (authError) {
+        setSettingsMessage({ type: "error", text: "現在のパスワードが正しくありません。" });
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setSettingsMessage({ type: "error", text: error.message });
+      } else {
+        setSettingsMessage({ type: "success", text: "パスワードを変更しました。" });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch {
+      setSettingsMessage({ type: "error", text: "エラーが発生しました。" });
+    } finally {
+      setSettingsSaving(false);
     }
   };
 
@@ -423,7 +516,17 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <div className="p-2 border-t border-white/10">
+        <div className="p-2 border-t border-white/10 space-y-0.5">
+          <button onClick={() => { setSettingsOpen(true); setSidebarOpen(false); }}
+            className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-lg text-xs text-white/50 hover:text-white/80 hover:bg-white/5 transition-all ${!sidebarOpen ? "justify-center" : ""}`}
+            title="アカウント設定"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+            </svg>
+            {sidebarOpen && <span className="whitespace-nowrap">アカウント設定</span>}
+          </button>
           <button onClick={handleLogout}
             className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-lg text-xs text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all ${!sidebarOpen ? "justify-center" : ""}`}
             title="ログアウト"
@@ -766,6 +869,132 @@ export default function AdminPage() {
                   </span>
                 ) : "保存する"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={closeSettings}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative w-full sm:max-w-[440px] bg-white rounded-t-xl sm:rounded-xl shadow-2xl mx-3 sm:mx-4"
+            onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-md bg-gray-900 flex items-center justify-center text-white">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+                  </svg>
+                </div>
+                <h2 className="text-sm font-bold text-gray-900">アカウント設定</h2>
+              </div>
+              <button onClick={closeSettings} className="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+
+            {/* Current email display */}
+            <div className="px-4 pt-3">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">現在のメールアドレス</p>
+              <p className="text-sm text-gray-700 mt-0.5">{currentUserEmail}</p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-100 mx-4 mt-3">
+              <button
+                onClick={() => { setSettingsTab("email"); setSettingsMessage(null); }}
+                className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
+                  settingsTab === "email" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                メールアドレス変更
+              </button>
+              <button
+                onClick={() => { setSettingsTab("password"); setSettingsMessage(null); }}
+                className={`flex-1 py-2 text-xs font-medium border-b-2 transition-colors ${
+                  settingsTab === "password" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                パスワード変更
+              </button>
+            </div>
+
+            {/* Tab content */}
+            <div className="p-4">
+              {settingsMessage && (
+                <div className={`flex items-start gap-2 px-3 py-2.5 rounded-lg mb-4 ${
+                  settingsMessage.type === "success" ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+                }`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={settingsMessage.type === "success" ? "#16a34a" : "#ef4444"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                    {settingsMessage.type === "success"
+                      ? <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>
+                      : <><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></>
+                    }
+                  </svg>
+                  <p className={`text-xs ${settingsMessage.type === "success" ? "text-green-700" : "text-red-600"}`}>
+                    {settingsMessage.text}
+                  </p>
+                </div>
+              )}
+
+              {settingsTab === "email" ? (
+                <form onSubmit={handleEmailChange} className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">新しいメールアドレス</label>
+                    <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:bg-white transition-all"
+                      placeholder="new@example.com" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">現在のパスワード（確認用）</label>
+                    <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:bg-white transition-all"
+                      placeholder="••••••••" />
+                  </div>
+                  <button type="submit" disabled={settingsSaving || !newEmail || !currentPassword}
+                    className="w-full bg-gray-900 text-white rounded-lg py-2.5 text-xs font-bold hover:bg-gray-800 disabled:opacity-40 transition-all active:scale-[0.98]">
+                    {settingsSaving ? (
+                      <span className="flex items-center justify-center gap-1.5">
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        変更中...
+                      </span>
+                    ) : "メールアドレスを変更"}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handlePasswordChange} className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">現在のパスワード</label>
+                    <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:bg-white transition-all"
+                      placeholder="••••••••" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">新しいパスワード（8文字以上）</label>
+                    <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:bg-white transition-all"
+                      placeholder="••••••••" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">新しいパスワード（確認）</label>
+                    <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:bg-white transition-all"
+                      placeholder="••••••••" />
+                  </div>
+                  <button type="submit" disabled={settingsSaving || !currentPassword || !newPassword || !confirmPassword}
+                    className="w-full bg-gray-900 text-white rounded-lg py-2.5 text-xs font-bold hover:bg-gray-800 disabled:opacity-40 transition-all active:scale-[0.98]">
+                    {settingsSaving ? (
+                      <span className="flex items-center justify-center gap-1.5">
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        変更中...
+                      </span>
+                    ) : "パスワードを変更"}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

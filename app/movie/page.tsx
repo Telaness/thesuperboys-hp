@@ -1,6 +1,18 @@
+import type { Metadata } from "next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SectionHeading from "../components/SectionHeading";
+
+export const metadata: Metadata = {
+  title: "MOVIE",
+  description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のミュージックビデオ情報。デビュー曲「恋せよ乙女、愛せよ漢」最新MVを公開中！",
+  alternates: { canonical: "/movie" },
+  openGraph: {
+    title: "MOVIE | THE超BOYS 公式サイト",
+    description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のミュージックビデオ情報。デビュー曲「恋せよ乙女、愛せよ漢」最新MVを公開中！",
+    url: "/movie",
+  },
+};
 
 const movies = [
   {

@@ -1,13 +1,13 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import type { Metadata } from "next";
+import { cache } from "react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import SectionHeading from "../../components/SectionHeading";
 import { supabase } from "../../../lib/supabase";
+import { sanitizeHtml } from "../../../lib/sanitize";
 
 interface EventItem {
   id: string;
@@ -17,53 +17,65 @@ interface EventItem {
   image_url?: string;
 }
 
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
 const dayLabelsJa = ["日", "月", "火", "水", "木", "金", "土"];
 
-export default function LiveEventDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
-  const [event, setEvent] = useState<EventItem | null>(null);
-  const [loading, setLoading] = useState(true);
+const getEvent = cache(async (id: string): Promise<EventItem | null> => {
+  const { data } = await supabase
+    .from("live_events")
+    .select("*")
+    .eq("id", id)
+    .eq("published", true)
+    .single();
+  return data;
+});
 
-  useEffect(() => {
-    async function fetchEvent() {
-      const { data } = await supabase
-        .from("live_events")
-        .select("*")
-        .eq("id", id)
-        .single();
-      setEvent(data);
-      setLoading(false);
-    }
-    fetchEvent();
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/live-event" />
-        <main className="flex-1 flex items-center justify-center">
-          <p className="text-gray-400">読み込み中...</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const event = await getEvent(id);
 
   if (!event) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/live-event" />
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-16 text-center">
-          <p className="text-gray-500 text-lg mt-20">イベントが見つかりませんでした。</p>
-          <Link href="/live-event" className="inline-block mt-8 text-red-600 underline underline-offset-4">
-            LIVE / EVENT 一覧に戻る
-          </Link>
-        </main>
-        <Footer />
-      </div>
-    );
+    return { title: "イベントが見つかりません" };
   }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    startDate: event.date,
+    organizer: {
+      "@type": "MusicGroup",
+      name: "THE超BOYS",
+    },
+  };
+
+  return {
+    title: event.title,
+    description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のライブ・イベント: ${event.title}（${event.date}）`,
+    alternates: { canonical: `/live-event/${id}` },
+    openGraph: {
+      title: `${event.title} | LIVE / EVENT | THE超BOYS`,
+      description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のライブ・イベント: ${event.title}（${event.date}）`,
+      url: `/live-event/${id}`,
+      type: "article",
+      ...(event.image_url && {
+        images: [{ url: event.image_url, alt: event.title }],
+      }),
+    },
+    other: {
+      "script:ld+json": JSON.stringify(jsonLd),
+    },
+  };
+}
+
+export default async function LiveEventDetailPage({ params }: Props) {
+  const { id } = await params;
+  const event = await getEvent(id);
+
+  if (!event) notFound();
 
   const date = new Date(event.date);
   const year = date.getFullYear();
@@ -106,7 +118,7 @@ export default function LiveEventDetailPage() {
 
           {event.detail && (
             <div className="bg-gray-50 rounded-lg p-8 mb-12 rich-text-content text-sm leading-relaxed text-gray-700"
-              dangerouslySetInnerHTML={{ __html: event.detail.replace(/\n/g, "<br>") }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.detail.replace(/\n/g, "<br>")) }}
             />
           )}
 

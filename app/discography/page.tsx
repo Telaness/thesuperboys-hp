@@ -1,11 +1,20 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SectionHeading from "../components/SectionHeading";
 import { supabase } from "../../lib/supabase";
+
+export const metadata: Metadata = {
+  title: "DISCOGRAPHY",
+  description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」の配信楽曲情報。デビュー曲「恋せよ乙女、愛せよ漢」が各サブスクで配信中！",
+  alternates: { canonical: "/discography" },
+  openGraph: {
+    title: "DISCOGRAPHY | THE超BOYS 公式サイト",
+    description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」の配信楽曲情報。デビュー曲「恋せよ乙女、愛せよ漢」が各サブスクで配信中！",
+    url: "/discography",
+  },
+};
 
 interface DiscographyItem {
   id: string;
@@ -14,20 +23,14 @@ interface DiscographyItem {
   link_url: string;
 }
 
-export default function DiscographyPage() {
-  const [items, setItems] = useState<DiscographyItem[]>([]);
+export default async function DiscographyPage() {
+  const { data } = await supabase
+    .from("discography")
+    .select("id, title, image_url, link_url")
+    .eq("published", true)
+    .order("created_at", { ascending: false });
 
-  useEffect(() => {
-    async function fetchData() {
-      const { data } = await supabase
-        .from("discography")
-        .select("id, title, image_url, link_url")
-        .eq("published", true)
-        .order("created_at", { ascending: false });
-      setItems(data || []);
-    }
-    fetchData();
-  }, []);
+  const items: DiscographyItem[] = data || [];
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

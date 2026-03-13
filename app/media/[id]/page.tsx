@@ -1,13 +1,13 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import type { Metadata } from "next";
+import { cache } from "react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import SectionHeading from "../../components/SectionHeading";
 import { supabase } from "../../../lib/supabase";
+import { sanitizeHtml } from "../../../lib/sanitize";
 
 interface MediaItem {
   id: string;
@@ -17,53 +17,51 @@ interface MediaItem {
   image_url?: string;
 }
 
-export default function MediaDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
-  const [item, setItem] = useState<MediaItem | null>(null);
-  const [loading, setLoading] = useState(true);
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-  useEffect(() => {
-    async function fetchMedia() {
-      const { data } = await supabase
-        .from("media")
-        .select("*")
-        .eq("id", id)
-        .single();
-      setItem(data);
-      setLoading(false);
-    }
-    fetchMedia();
-  }, [id]);
+const getMediaItem = cache(async (id: string): Promise<MediaItem | null> => {
+  const { data } = await supabase
+    .from("media")
+    .select("*")
+    .eq("id", id)
+    .eq("published", true)
+    .single();
+  return data;
+});
 
-  const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/media" />
-        <main className="flex-1 flex items-center justify-center">
-          <p className="text-gray-400">読み込み中...</p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getMediaItem(id);
 
   if (!item) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header currentPath="/media" />
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 py-16 text-center">
-          <p className="text-gray-500 text-lg mt-20">メディア情報が見つかりませんでした。</p>
-          <Link href="/media" className="inline-block mt-8 text-orange-600 underline underline-offset-4">
-            MEDIA 一覧に戻る
-          </Link>
-        </main>
-        <Footer />
-      </div>
-    );
+    return { title: "メディア情報が見つかりません" };
   }
+
+  return {
+    title: item.title,
+    description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のメディア出演: ${item.title}`,
+    alternates: { canonical: `/media/${id}` },
+    openGraph: {
+      title: `${item.title} | MEDIA | THE超BOYS`,
+      description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のメディア出演: ${item.title}`,
+      url: `/media/${id}`,
+      type: "article",
+      ...(item.image_url && {
+        images: [{ url: item.image_url, alt: item.title }],
+      }),
+    },
+  };
+}
+
+export default async function MediaDetailPage({ params }: Props) {
+  const { id } = await params;
+  const item = await getMediaItem(id);
+
+  if (!item) notFound();
+
+  const formatDate = (dateStr: string) => dateStr.replace(/-/g, "/");
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -97,7 +95,7 @@ export default function MediaDetailPage() {
 
           {item.detail && (
             <div className="mb-12 rich-text-content text-sm leading-loose text-gray-700"
-              dangerouslySetInnerHTML={{ __html: item.detail.replace(/\n/g, "<br>") }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.detail.replace(/\n/g, "<br>")) }}
             />
           )}
 

@@ -1,6 +1,18 @@
+import type { Metadata } from "next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SectionHeading from "../components/SectionHeading";
+
+export const metadata: Metadata = {
+  title: "GOODS",
+  description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のグッズ情報。オリジナルのブロマイド、Tシャツなどの商品をオンラインストアで販売中！",
+  alternates: { canonical: "/goods" },
+  openGraph: {
+    title: "GOODS | THE超BOYS 公式サイト",
+    description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のグッズ情報。オリジナルのブロマイド、Tシャツなどの商品をオンラインストアで販売中！",
+    url: "/goods",
+  },
+};
 
 export default function GoodsPage() {
   return (

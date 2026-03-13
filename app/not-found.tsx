@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+
+export const metadata: Metadata = {
+  title: "ページが見つかりません",
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (
