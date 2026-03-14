@@ -41,6 +41,10 @@ export const metadata: Metadata = {
       "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」公式ホームページ。最新のライブ・イベント情報、メンバープロフィール、楽曲情報など。",
     images: ["/top/top_artist_photo.jpg"],
   },
+  icons: {
+    icon: "/thesuperboys_fav.png",
+    apple: "/thesuperboys_fav.png",
+  },
   alternates: {
     canonical: "/",
   },
