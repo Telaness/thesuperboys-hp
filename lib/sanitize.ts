@@ -1,11 +1,11 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitize from "sanitize-html";
 
 /**
  * HTMLコンテンツをサニタイズしてXSS攻撃を防止する
  */
 export function sanitizeHtml(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [
+  return sanitize(dirty, {
+    allowedTags: [
       "p", "br", "b", "i", "u", "strong", "em", "s", "del",
       "h1", "h2", "h3", "h4", "h5", "h6",
       "ul", "ol", "li",
@@ -15,13 +15,14 @@ export function sanitizeHtml(dirty: string): string {
       "div", "span", "hr",
       "sub", "sup",
     ],
-    ALLOWED_ATTR: [
-      "href", "target", "rel", "src", "alt", "width", "height",
-      "class", "style", "id",
-      "colspan", "rowspan",
-    ],
-    ALLOW_DATA_ATTR: false,
-    ADD_ATTR: ["target"],
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+      img: ["src", "alt", "width", "height"],
+      "*": ["class", "style", "id"],
+      td: ["colspan", "rowspan"],
+      th: ["colspan", "rowspan"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
   });
 }
 

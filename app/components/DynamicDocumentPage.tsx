@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "../../lib/sanitize";
 import { supabase } from "../../lib/supabase";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -51,7 +51,7 @@ export default function DynamicDocumentPage({ slug, fallbackTitle }: DynamicDocu
         ) : content ? (
           <div
             className="text-sm leading-loose text-gray-800 document-content"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
           />
         ) : (
           <div className="text-sm leading-loose text-gray-800">
