@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { supabase } from "../../lib/supabase";
-import RichTextEditor from "../components/RichTextEditor";
+import RichTextEditor from "./RichTextEditor";
 
 type Tab = "live_events" | "news" | "media" | "discography" | "footer_pages";
 
@@ -196,7 +196,10 @@ export default function AdminPage() {
         setSettingsMessage({ type: "error", text: "現在のパスワードが正しくありません。" });
         return;
       }
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      const { error } = await supabase.auth.updateUser(
+        { email: newEmail },
+        { emailRedirectTo: `${window.location.origin}/auth/confirm` }
+      );
       if (error) {
         setSettingsMessage({ type: "error", text: error.message });
       } else {
@@ -483,9 +486,6 @@ export default function AdminPage() {
       }`}>
         <div className="p-4 border-b border-white/10 flex items-center justify-between min-h-[56px]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-bold">S</span>
-            </div>
             {sidebarOpen && (
               <div>
                 <p className="text-xs font-bold tracking-wider whitespace-nowrap">THE超BOYS</p>
