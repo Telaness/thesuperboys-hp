@@ -125,7 +125,7 @@ export default async function LiveEventDetailPage({ params }: Props) {
           )}
 
           <div className="text-center pt-8 border-t border-gray-200">
-            <BackToListLink />
+            <BackToListLink year={year} month={month} />
           </div>
         </article>
       </main>
