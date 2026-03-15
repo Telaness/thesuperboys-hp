@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import SectionHeading from "../../components/SectionHeading";
+import BackToListLink from "./BackToListLink";
 import { supabase } from "../../../lib/supabase";
 import { sanitizeHtml } from "../../../lib/sanitize";
 
@@ -125,13 +125,7 @@ export default async function LiveEventDetailPage({ params }: Props) {
           )}
 
           <div className="text-center pt-8 border-t border-gray-200">
-            <Link
-              href="/live-event"
-              className="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
-            >
-              <span>&lsaquo;</span>
-              <span>LIVE / EVENT 一覧に戻る</span>
-            </Link>
+            <BackToListLink />
           </div>
         </article>
       </main>

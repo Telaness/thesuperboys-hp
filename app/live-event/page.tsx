@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import LiveEventListClient from "./LiveEventListClient";
 
 export const metadata: Metadata = {
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default function LiveEventPage() {
-  return <LiveEventListClient />;
+  return (
+    <Suspense>
+      <LiveEventListClient />
+    </Suspense>
+  );
 }

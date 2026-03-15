@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import SectionHeading from "../components/SectionHeading";
@@ -39,14 +40,28 @@ function getCalendarDays(year: number, month: number) {
 }
 
 export default function LiveEventListClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+
+  const initialYear = Number(searchParams.get("y")) || now.getFullYear();
+  const initialMonth = Number(searchParams.get("m")) || (now.getMonth() + 1);
+
+  const [year, setYear] = useState(initialYear);
+  const [month, setMonth] = useState(initialMonth);
   const [monthEvents, setMonthEvents] = useState<EventItem[]>([]);
-  const autoAdvanced = useRef(false);
+  const autoAdvanced = useRef(!!searchParams.get("m"));
 
   const [listPage, setListPage] = useState(1);
   const PER_PAGE = 10;
+
+  const updateUrl = useCallback((y: number, m: number) => {
+    router.replace(`/live-event?y=${y}&m=${m}`, { scroll: false });
+  }, [router]);
+
+  useEffect(() => {
+    updateUrl(year, month);
+  }, [year, month, updateUrl]);
 
   useEffect(() => {
     async function fetchEvents() {
