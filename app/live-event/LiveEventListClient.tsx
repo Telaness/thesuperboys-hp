@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -39,9 +39,11 @@ function getCalendarDays(year: number, month: number) {
 }
 
 export default function LiveEventListClient() {
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(3);
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
   const [monthEvents, setMonthEvents] = useState<EventItem[]>([]);
+  const autoAdvanced = useRef(false);
 
   const [listPage, setListPage] = useState(1);
   const PER_PAGE = 10;
@@ -60,7 +62,22 @@ export default function LiveEventListClient() {
         .lt("date", endDate)
         .order("date", { ascending: true });
 
-      setMonthEvents(data || []);
+      const events = data || [];
+      const today = new Date().toISOString().split("T")[0];
+      const hasFutureEvents = events.some((e) => e.date >= today);
+
+      if (!hasFutureEvents && !autoAdvanced.current) {
+        autoAdvanced.current = true;
+        if (month === 12) {
+          setYear((y) => y + 1);
+          setMonth(1);
+        } else {
+          setMonth((m) => m + 1);
+        }
+        return;
+      }
+
+      setMonthEvents(events);
     }
     fetchEvents();
   }, [year, month]);
