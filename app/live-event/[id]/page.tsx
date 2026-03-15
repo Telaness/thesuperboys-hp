@@ -81,7 +81,9 @@ export default async function LiveEventDetailPage({ params }: Props) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
-  const dow = dayLabelsJa[date.getDay()];
+  const dayIndex = date.getDay();
+  const dow = dayLabelsJa[dayIndex];
+  const dowColor = dayIndex === 0 ? "text-red-500" : dayIndex === 6 ? "text-blue-500" : "text-gray-400";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -96,7 +98,7 @@ export default async function LiveEventDetailPage({ params }: Props) {
             <span className="font-impact text-4xl tracking-wide">
               {year}.{String(month).padStart(2, "0")}.{String(day).padStart(2, "0")}
             </span>
-            <span className="font-impact text-xl text-gray-400">({dow})</span>
+            <span className={`font-impact text-xl ${dowColor}`}>({dow})</span>
           </div>
 
           <h2 className="text-2xl font-bold leading-relaxed mb-10 pb-6 border-b border-gray-200">
@@ -104,7 +106,7 @@ export default async function LiveEventDetailPage({ params }: Props) {
           </h2>
 
           {event.image_url && (
-            <div className="mb-10">
+            <div className="mb-10 flex justify-center">
               <Image
                 src={event.image_url}
                 alt={event.title}
