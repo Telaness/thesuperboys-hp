@@ -67,6 +67,7 @@ export default function LiveEventListClient() {
   }, [year, month, listPage, updateUrl]);
 
   useEffect(() => {
+    setMonthEvents([]);
     async function fetchEvents() {
       const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
       const endDate = month === 12
