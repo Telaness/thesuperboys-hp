@@ -48,9 +48,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のニュース: ${item.title}`,
       url: `/news/${id}`,
       type: "article",
-      ...(item.image_url && {
-        images: [{ url: item.image_url, alt: item.title }],
-      }),
+      images: item.image_url
+        ? [{ url: item.image_url, alt: item.title }]
+        : [{ url: "/top/top_artist_photo.jpg", width: 1400, height: 1050, alt: "THE超BOYS" }],
     },
   };
 }
