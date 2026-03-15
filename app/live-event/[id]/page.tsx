@@ -65,6 +65,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? [{ url: event.image_url, alt: event.title }]
         : [{ url: "/top/top_artist_photo.jpg", width: 1400, height: 1050, alt: "THE超BOYS" }],
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${event.title} | LIVE / EVENT | THE超BOYS`,
+      description: `ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」のライブ・イベント: ${event.title}（${event.date}）`,
+      images: event.image_url
+        ? [{ url: event.image_url, alt: event.title }]
+        : [{ url: "/top/top_artist_photo.jpg", alt: "THE超BOYS" }],
+    },
     other: {
       "script:ld+json": JSON.stringify(jsonLd),
     },
