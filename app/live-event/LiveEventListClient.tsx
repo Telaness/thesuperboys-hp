@@ -46,22 +46,25 @@ export default function LiveEventListClient() {
 
   const initialYear = Number(searchParams.get("y")) || now.getFullYear();
   const initialMonth = Number(searchParams.get("m")) || (now.getMonth() + 1);
+  const initialPage = Number(searchParams.get("p")) || 1;
 
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
   const [monthEvents, setMonthEvents] = useState<EventItem[]>([]);
   const autoAdvanced = useRef(!!searchParams.get("m"));
 
-  const [listPage, setListPage] = useState(1);
+  const [listPage, setListPage] = useState(initialPage);
   const PER_PAGE = 10;
 
-  const updateUrl = useCallback((y: number, m: number) => {
-    router.replace(`/live-event?y=${y}&m=${m}`, { scroll: false });
+  const updateUrl = useCallback((y: number, m: number, p: number) => {
+    const params = new URLSearchParams({ y: String(y), m: String(m) });
+    if (p > 1) params.set("p", String(p));
+    router.replace(`/live-event?${params.toString()}`, { scroll: false });
   }, [router]);
 
   useEffect(() => {
-    updateUrl(year, month);
-  }, [year, month, updateUrl]);
+    updateUrl(year, month, listPage);
+  }, [year, month, listPage, updateUrl]);
 
   useEffect(() => {
     async function fetchEvents() {
