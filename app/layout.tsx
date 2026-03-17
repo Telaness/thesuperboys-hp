@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     url: "/",
     images: [
       {
-        url: "/top/top_artist_photo.jpg",
-        width: 1400,
-        height: 1050,
+        url: "/link_pic.jpg",
+        width: 1200,
+        height: 630,
         alt: "THE超BOYS",
       },
     ],
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "THE超BOYS | 公式サイト",
     description:
       "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」公式ホームページ。最新のライブ・イベント情報、メンバープロフィール、楽曲情報など。",
-    images: ["/top/top_artist_photo.jpg"],
+    images: ["/link_pic.jpg"],
   },
   icons: {
     icon: "/thesuperboys_fav.png",
@@ -56,7 +56,7 @@ const jsonLd = {
   "@type": "MusicGroup",
   name: "THE超BOYS",
   url: "https://thesuperboys.jp",
-  image: "https://thesuperboys.jp/top/top_artist_photo.jpg",
+  image: "https://thesuperboys.jp/link_pic.jpg",
   description: "ヒーローアイドル「THE超BOYS（ザ・スーパーボーイズ）」",
   genre: "J-POP",
   sameAs: [
