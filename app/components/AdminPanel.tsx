@@ -275,12 +275,12 @@ export default function AdminPage() {
 
   const handleNew = () => {
     if (tab === "footer_pages") {
-      setEditing({ id: "", slug: "", title: "", content: "", published: true } as FooterPage);
+      setEditing({ id: "", slug: "", title: "", content: "", published: false } as FooterPage);
     } else if (tab === "discography") {
-      setEditing({ id: "", title: "", image_url: "", link_url: "", published: true } as DiscographyItem);
+      setEditing({ id: "", title: "", image_url: "", link_url: "", published: false } as DiscographyItem);
     } else {
       const today = new Date().toISOString().split("T")[0];
-      setEditing({ id: "", title: "", date: today, detail: "", published: true, image_url: "" });
+      setEditing({ id: "", title: "", date: today, detail: "", published: false, image_url: "" });
     }
     setIsNew(true);
     setImageFile(null);
@@ -733,10 +733,9 @@ export default function AdminPage() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={closeModal}>
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative w-full sm:max-w-[500px] max-h-[70vh] sm:max-h-[85vh] bg-white rounded-t-xl sm:rounded-xl shadow-2xl overflow-y-auto mx-3 sm:mx-4 mb-[env(safe-area-inset-bottom)]"
-            onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onMouseDown={closeModal} />
+          <div className="relative w-full sm:max-w-[500px] max-h-[70vh] sm:max-h-[85vh] bg-white rounded-t-xl sm:rounded-xl shadow-2xl overflow-y-auto mx-3 sm:mx-4 mb-[env(safe-area-inset-bottom)]">
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
@@ -876,10 +875,9 @@ export default function AdminPage() {
 
       {/* Settings Modal */}
       {settingsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={closeSettings}>
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative w-full sm:max-w-[440px] bg-white rounded-t-xl sm:rounded-xl shadow-2xl mx-3 sm:mx-4"
-            onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onMouseDown={closeSettings} />
+          <div className="relative w-full sm:max-w-[440px] bg-white rounded-t-xl sm:rounded-xl shadow-2xl mx-3 sm:mx-4">
             {/* Header */}
             <div className="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">

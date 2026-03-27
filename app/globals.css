@@ -195,7 +195,6 @@ footer a:hover {
 .rich-text-content br {
   content: "";
   display: block;
-  margin-top: 0.25em;
 }
 
 /* Smooth scroll */

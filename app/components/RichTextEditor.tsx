@@ -126,8 +126,14 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault();
-    const text = e.clipboardData.getData("text/plain");
-    document.execCommand("insertText", false, text);
+    const html = e.clipboardData.getData("text/html");
+    if (html) {
+      // HTML形式がある場合はフォーマット（太字・リンク・色など）を保持してペースト
+      document.execCommand("insertHTML", false, html);
+    } else {
+      const text = e.clipboardData.getData("text/plain");
+      document.execCommand("insertText", false, text);
+    }
     // ペースト後にURL自動リンク化を実行
     setTimeout(() => autoLinkLastUrl(), 0);
   }, [autoLinkLastUrl]);

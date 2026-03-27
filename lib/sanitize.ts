@@ -23,6 +23,14 @@ export function sanitizeHtml(dirty: string): string {
       th: ["colspan", "rowspan"],
     },
     allowedSchemes: ["http", "https", "mailto"],
+    allowedStyles: {
+      "*": {
+        color: [/.*/],
+        "background-color": [/.*/],
+        "font-size": [/.*/],
+        "text-decoration": [/.*/],
+      },
+    },
   });
 }
 

@@ -85,7 +85,7 @@ export default async function NewsDetailPage({ params }: Props) {
           </h2>
 
           {item.image_url && (
-            <div className="mb-10">
+            <div className="mb-10 flex justify-center">
               <Image
                 src={item.image_url}
                 alt={item.title}
@@ -99,7 +99,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
           {item.detail && (
             <div className="mb-12 rich-text-content text-sm leading-loose text-gray-700"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.detail.replace(/\n/g, "<br>")) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.detail) }}
             />
           )}
 
