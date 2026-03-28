@@ -25,8 +25,9 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
 
   useEffect(() => {
     if (editorRef.current && !isInitializedRef.current) {
-      // プレーンテキストの改行(\n)をHTMLの<br>に変換（既存データの互換性対応）
-      const html = (value || "").replace(/\n/g, "<br>");
+      // HTMLタグを含む場合はそのまま使用、プレーンテキストの場合のみ\nを<br>に変換
+      const raw = value || "";
+      const html = /<[a-z][\s\S]*>/i.test(raw) ? raw : raw.replace(/\n/g, "<br>");
       editorRef.current.innerHTML = html;
       isInitializedRef.current = true;
     }
@@ -126,10 +127,61 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault();
-    const html = e.clipboardData.getData("text/html");
-    if (html) {
-      // HTML形式がある場合はフォーマット（太字・リンク・色など）を保持してペースト
-      document.execCommand("insertHTML", false, html);
+    const rawHtml = e.clipboardData.getData("text/html");
+    if (rawHtml) {
+      // クリップボードHTMLからbody内のコンテンツだけを抽出
+      const doc = new DOMParser().parseFromString(rawHtml, "text/html");
+      // コメントノード（<!--StartFragment-->等）を除去
+      const removeComments = (node: Node) => {
+        const comments: Node[] = [];
+        const walker = document.createTreeWalker(node, NodeFilter.SHOW_COMMENT);
+        while (walker.nextNode()) comments.push(walker.currentNode);
+        comments.forEach(c => c.parentNode?.removeChild(c));
+      };
+      removeComments(doc.body);
+      // 不要なインラインスタイルを除去（意図的に設定した色・サイズ・装飾のみ保持）
+      const allowedStyles = ["color", "font-size", "text-decoration", "background-color"];
+      doc.body.querySelectorAll("[style]").forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const kept: string[] = [];
+        for (const prop of allowedStyles) {
+          const val = htmlEl.style.getPropertyValue(prop);
+          // 背景色がwhite/transparent系の場合は除去
+          if (prop === "background-color" && (!val || /^(white|#fff|#ffffff|rgb\(255,\s*255,\s*255\)|transparent)$/i.test(val))) continue;
+          // 文字色がデフォルト（黒系）の場合は除去
+          if (prop === "color" && /^(rgb\(23,\s*23,\s*23\)|rgb\(0,\s*0,\s*0\)|black|#000|#000000)$/i.test(val)) continue;
+          if (val) kept.push(`${prop}: ${val}`);
+        }
+        if (kept.length > 0) {
+          htmlEl.setAttribute("style", kept.join("; "));
+        } else {
+          htmlEl.removeAttribute("style");
+        }
+      });
+      // ブロック要素（p, div）を中身+brに変換（余分な行間を防ぎつつ改行を維持）
+      doc.body.querySelectorAll("p, div").forEach((el) => {
+        const frag = doc.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        // 中身の末尾がbrでない場合のみbrを追加して改行を維持
+        if (el.nextSibling && frag.lastChild?.nodeName !== "BR") {
+          frag.appendChild(doc.createElement("br"));
+        }
+        el.replaceWith(frag);
+      });
+      const cleanHtml = doc.body.innerHTML;
+      // Selection APIで直接HTMLノードを挿入
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const frag = range.createContextualFragment(cleanHtml);
+        range.insertNode(frag);
+        // カーソルを挿入した末尾に移動
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      handleInput();
     } else {
       const text = e.clipboardData.getData("text/plain");
       document.execCommand("insertText", false, text);
@@ -154,7 +206,11 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
 
   const handleColorSelect = (color: string) => {
     restoreSelection();
-    execCommand("foreColor", color);
+    if (color === "none") {
+      execCommand("removeFormat");
+    } else {
+      execCommand("foreColor", color);
+    }
     setShowColorPicker(false);
   };
 
@@ -340,18 +396,28 @@ export default function RichTextEditor({ value, onChange, accentColor, placehold
           </button>
 
           {showColorPicker && (
-            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50 grid grid-cols-5 gap-1 w-[140px]">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => handleColorSelect(color)}
-                  className="w-5 h-5 rounded-sm border border-gray-200 hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50 w-[140px]">
+              <div className="grid grid-cols-5 gap-1">
+                {colors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleColorSelect(color)}
+                    className="w-5 h-5 rounded-sm border border-gray-200 hover:scale-110 transition-transform"
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleColorSelect("none")}
+                className="w-full mt-1.5 px-2 py-0.5 text-[10px] text-gray-500 rounded hover:bg-gray-100 transition-colors border border-gray-200"
+              >
+                変更なし
+              </button>
             </div>
           )}
         </div>

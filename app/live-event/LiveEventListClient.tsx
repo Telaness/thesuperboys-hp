@@ -76,6 +76,7 @@ export default function LiveEventListClient() {
       const { data } = await supabase
         .from("live_events")
         .select("id, title, date, detail")
+        .eq("published", true)
         .gte("date", startDate)
         .lt("date", endDate)
         .order("date", { ascending: true });

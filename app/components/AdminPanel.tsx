@@ -130,6 +130,9 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("live_events");
   const [items, setItems] = useState<ContentItem[]>([]);
   const [editing, setEditing] = useState<ContentItem | null>(null);
+  const editingRef = useRef<ContentItem | null>(null);
+  // editingが更新されるたびにrefも同期
+  useEffect(() => { editingRef.current = editing; }, [editing]);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -306,8 +309,10 @@ export default function AdminPage() {
   };
 
   const handleSave = async () => {
-    if (!editing) return;
-    if ((tab === "media" || tab === "discography") && !(editing as LiveEvent).image_url && !imageFile) {
+    // refから最新のediting状態を取得（クロージャの古い値を回避）
+    const current = editingRef.current;
+    if (!current) return;
+    if ((tab === "media" || tab === "discography") && !(current as LiveEvent).image_url && !imageFile) {
       alert("画像は必須です。");
       return;
     }
@@ -316,25 +321,50 @@ export default function AdminPage() {
       let saveData: Record<string, unknown>;
 
       if (tab === "footer_pages") {
-        const { id, ...rest } = editing as FooterPage;
-        void id;
-        saveData = rest;
-      } else {
-        let imageUrl = (editing as LiveEvent).image_url || "";
+        const fp = current as FooterPage;
+        saveData = {
+          slug: fp.slug,
+          title: fp.title,
+          content: fp.content,
+          published: fp.published,
+        };
+      } else if (tab === "discography") {
+        const disc = current as DiscographyItem;
+        let imageUrl = disc.image_url || "";
         if (imageFile) {
           setUploading(true);
           imageUrl = await uploadImage(imageFile);
           setUploading(false);
         }
-        const { id, ...rest } = { ...editing, image_url: imageUrl };
-        void id;
-        saveData = rest;
+        saveData = {
+          title: disc.title,
+          image_url: imageUrl,
+          link_url: disc.link_url,
+          published: disc.published,
+        };
+      } else {
+        const item = current as LiveEvent;
+        let imageUrl = item.image_url || "";
+        if (imageFile) {
+          setUploading(true);
+          imageUrl = await uploadImage(imageFile);
+          setUploading(false);
+        }
+        saveData = {
+          title: item.title,
+          date: item.date,
+          detail: item.detail,
+          image_url: imageUrl,
+          published: item.published,
+        };
       }
 
       if (isNew) {
-        await supabase.from(tab).insert(saveData);
+        const { error } = await supabase.from(tab).insert(saveData);
+        if (error) { alert(`INSERT失敗: ${error.message}`); return; }
       } else {
-        await supabase.from(tab).update(saveData).eq("id", editing.id);
+        const { error } = await supabase.from(tab).update(saveData).eq("id", current.id);
+        if (error) { alert(`UPDATE失敗: ${error.message}`); return; }
       }
       setEditing(null);
       setIsNew(false);
@@ -361,8 +391,7 @@ export default function AdminPage() {
   };
 
   const updateField = (field: string, value: string | boolean) => {
-    if (!editing) return;
-    setEditing({ ...editing, [field]: value });
+    setEditing(prev => prev ? { ...prev, [field]: value } : prev);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

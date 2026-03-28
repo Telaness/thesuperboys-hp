@@ -24,6 +24,7 @@ export default function NewsListClient() {
       const { data } = await supabase
         .from("news")
         .select("id, title, date")
+        .eq("published", true)
         .order("date", { ascending: false });
       setAllNews(data || []);
     }

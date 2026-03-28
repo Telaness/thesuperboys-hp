@@ -31,6 +31,26 @@ export function sanitizeHtml(dirty: string): string {
         "text-decoration": [/.*/],
       },
     },
+    transformTags: {
+      // execCommand("foreColor") が生成する <font color="..."> を <span style="color: ..."> に変換
+      font: (tagName: string, attribs: Record<string, string>) => {
+        const styles: string[] = [];
+        if (attribs.color) styles.push(`color: ${attribs.color}`);
+        if (attribs.size) {
+          const sizeMap: Record<string, string> = {
+            "1": "0.625em", "2": "0.8125em", "3": "1em",
+            "4": "1.125em", "5": "1.5em", "6": "2em", "7": "3em",
+          };
+          styles.push(`font-size: ${sizeMap[attribs.size] || "1em"}`);
+        }
+        return {
+          tagName: "span",
+          attribs: {
+            style: styles.join("; "),
+          },
+        };
+      },
+    },
   });
 }
 

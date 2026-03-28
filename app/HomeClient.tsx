@@ -44,9 +44,9 @@ export default function HomeClient() {
       const today = new Date().toISOString().split("T")[0];
 
       const [eventsRes, newsRes, mediaRes, discoRes] = await Promise.all([
-        supabase.from("live_events").select("id, title, date").gte("date", today).order("date", { ascending: true }).limit(3),
-        supabase.from("news").select("id, title, date").lte("date", today).order("date", { ascending: false }).limit(3),
-        supabase.from("media").select("id, title, date").order("date", { ascending: false }).limit(2),
+        supabase.from("live_events").select("id, title, date").eq("published", true).gte("date", today).order("date", { ascending: true }).limit(3),
+        supabase.from("news").select("id, title, date").eq("published", true).lte("date", today).order("date", { ascending: false }).limit(3),
+        supabase.from("media").select("id, title, date").eq("published", true).order("date", { ascending: false }).limit(2),
         supabase.from("discography").select("id, title, image_url, link_url").eq("published", true).order("created_at", { ascending: false }).limit(3),
       ]);
       if (eventsRes.data) setLiveEvents(eventsRes.data);
