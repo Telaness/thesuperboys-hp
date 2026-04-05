@@ -288,10 +288,10 @@ export default function HomeClient() {
             <p className="section-subtitle">メディア出演情報</p>
             <div className="mt-6 md:mt-10 space-y-6 md:min-h-[150px] md:flex-1">
               {mediaItems.map((item) => (
-                <div key={item.id} className="cursor-pointer hover:opacity-70 transition-opacity">
+                <Link key={item.id} href={`/media/${item.id}`} className="block cursor-pointer hover:opacity-70 transition-opacity">
                   <p className="list-item-date">{formatDate(item.date)}</p>
                   <p className="list-item-title">{item.title}</p>
-                </div>
+                </Link>
               ))}
             </div>
             <div className="mt-8 md:mt-12 text-right">
